@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "@pierre/diffs": "^1.5.2",
+    "@pierre/trees": "^1.0.0-beta.6",
+    "shiki": "^4.5.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "playwright": "^1.63.0"
+  },
+  "name": "crate-diff-ui",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-ui.mjs",
+    "test": "node scripts/generate-themes.mjs && node --test tests/*.test.mjs",
+    "test:browser": "node --test tests/*.browser.mjs"
+  }
+}

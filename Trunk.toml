@@ -1,0 +1,15 @@
+[build]
+target = "index.html"
+dist = "dist"
+
+[watch]
+ignore = ["node_modules", "public/assets"]
+
+[[hooks]]
+stage = "pre_build"
+command = "npm"
+command_arguments = ["run", "build"]
+
+[serve]
+addresses = ["127.0.0.1"]
+port = 8080

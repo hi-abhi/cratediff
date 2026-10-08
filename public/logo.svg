@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" fill="none">
+  <title>Isometric crate — plus and minus</title>
+  <desc>A compact wooden crate with softly rounded cream symbols, a plus on its left face and a minus on its right. Transparent background.</desc>
+  <g stroke="#65472F" stroke-linejoin="round" stroke-linecap="round">
+    <g transform="matrix(1 .577 0 1 12 38)">
+      <path d="M0 0H52V52H0Z" fill="#DCA563" stroke-width="2.5"/>
+      <path d="M6 7H46V45H6Z" fill="#C68D4F" stroke="#AA753F" stroke-width="1.5"/>
+      <rect x="12" y="12" width="28" height="28" rx="5" fill="#59402E" stroke="none"/>
+      <path d="M26 18V34M18 26H34" stroke="#FFF2D9" stroke-width="4.5"/>
+    </g>
+    <g transform="matrix(1 -.577 0 1 64 68.004)">
+      <path d="M0 0H52V52H0Z" fill="#C38B4D" stroke-width="2.5"/>
+      <path d="M6 7H46V45H6Z" fill="#AC743E" stroke="#946133" stroke-width="1.5"/>
+      <rect x="12" y="12" width="28" height="28" rx="5" fill="#59402E" stroke="none"/>
+      <path d="M18 26H34" stroke="#FFF2D9" stroke-width="4.5"/>
+    </g>
+    <g transform="matrix(1 .577 -1 .577 64 7.996)">
+      <path d="M0 0H52V52H0Z" fill="#F0C994" stroke-width="2.5"/>
+      <path d="M6 6H46V46H6Z" fill="#E9BE84" stroke="#C7975E" stroke-width="1.5"/>
+      <path d="M6 26H46" stroke="#C7975E" stroke-width="1.5"/>
+    </g>
+  </g>
+</svg>
