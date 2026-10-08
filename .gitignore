@@ -2,5 +2,3 @@
 /dist
 /node_modules
 /public/assets
-Cargo.lock
-package-lock.json
