@@ -50,6 +50,7 @@ flowchart LR
 | [`js/pierre.js`](../js/pierre.js) | Pierre instances, tree selection synchronization, and visual diff rendering |
 | [`style.css`](../style.css) | Shared neutral palette, responsive layout, and renderer host styling |
 | [`scripts/build-ui.mjs`](../scripts/build-ui.mjs) | esbuild configuration for Pierre modules and highlighting assets |
+| [`scripts/wasm-size.mjs`](../scripts/wasm-size.mjs) | Packaged WebAssembly sizes and estimated compressed transfer sizes |
 
 ## Routes and URL state
 

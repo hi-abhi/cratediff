@@ -13,6 +13,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build-ui.mjs",
+    "size:wasm": "node scripts/wasm-size.mjs",
     "test": "node scripts/generate-themes.mjs && node --test tests/*.test.mjs",
     "test:browser": "node --test tests/*.browser.mjs"
   }

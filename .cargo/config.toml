@@ -1,0 +1,3 @@
+[target.wasm32-unknown-unknown]
+# Share Leptos view implementations to reduce generated WebAssembly.
+rustflags = ["--cfg=erase_components"]

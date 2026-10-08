@@ -185,7 +185,8 @@ CSS selectors do not style the internals of those shadow roots.
 4. The page first loads `/assets/settings.js`, then `/assets/pierre.js`;
    highlighting modules are loaded from
    locally served chunks when needed. Release builds also optimize WebAssembly
-   through the configured `data-wasm-opt="z"` setting.
+   through the configured `data-wasm-opt="z"` setting and `--converge`, which
+   repeats optimization passes while the binary continues to shrink.
 5. Trunk publishes the static site into `dist/`.
 
 `Cargo.lock` and `package-lock.json` record the Rust and npm dependency
@@ -199,6 +200,45 @@ fallback to `index.html` for application routes so a direct comparison link or
 search-page refresh can initialize the router. Missing static assets should
 still return an asset error. The application displays routed not-found states;
 the static application's fallback document is normally served with HTTP 200.
+
+### WebAssembly size
+
+[`Cargo.toml`](../Cargo.toml) uses `opt-level = "z"`, full link-time optimization,
+one codegen unit, aborting panics, and stripped debug information for release
+builds. [`index.html`](../index.html) then runs `wasm-opt -Oz --converge` through
+Trunk.
+
+[`.cargo/config.toml`](../.cargo/config.toml) enables Leptos's
+`--cfg=erase_components` for the `wasm32-unknown-unknown` target. Leptos shares
+view and reactive closure implementations instead of generating a separate
+implementation for every concrete type. This adds allocations and dynamic
+dispatch during rendering in exchange for less generated code. The flag applies
+to browser builds; native Rust tests use their usual component types.
+
+Measure the actual packaged artifact after a production build:
+
+```sh
+NO_COLOR=true trunk build --release --locked
+npm run size:wasm
+```
+
+[`scripts/wasm-size.mjs`](../scripts/wasm-size.mjs) reports bytes for each Wasm
+artifact, gzip at level 9, and Brotli at quality 11. It accepts an optional build
+directory: `npm run size:wasm -- /path/to/build`. Compression figures estimate
+the transfer size when the static host enables the corresponding content
+encoding. The command does not change the artifacts or hosting configuration.
+Pierre, Shiki, and their lazy JavaScript chunks remain separate from Wasm and
+are excluded from these measurements.
+
+The October 8, 2026 comparison used Rust 1.99.0, Trunk 0.21.14, and identical
+application sources and locked dependencies. The baseline used `opt-level = "s"`
+with `wasm-opt -Oz`; the optimized build uses the configuration above.
+
+| Packaged Wasm | Before (bytes) | After (bytes) | Reduction |
+| --- | ---: | ---: | ---: |
+| Uncompressed | 937,114 | 764,702 | 18.4% |
+| Gzip | 368,280 | 317,036 | 13.9% |
+| Brotli | 286,776 | 254,561 | 11.2% |
 
 ## Validation and changes
 

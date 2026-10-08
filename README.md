@@ -101,11 +101,19 @@ npm test
 cargo clippy --target wasm32-unknown-unknown -- -D warnings
 cargo check --target wasm32-unknown-unknown
 NO_COLOR=true trunk build --release
+npm run size:wasm
 ```
 
 Trunk runs `npm run build` before each build and copies the generated assets.
 The `dist/` directory contains the static site. No application backend, API key,
 or Tailwind build is needed.
+
+Release builds use size-focused Rust optimization, Leptos component erasure for
+the WebAssembly target, and repeated `wasm-opt -Oz` passes. The size command
+reports the Wasm artifact and estimated gzip/Brotli transfer sizes. To measure
+another build directory, run `npm run size:wasm -- /path/to/build`.
+See [Frontend and build](docs/frontend.md#webassembly-size) for the configuration
+and rendering tradeoff.
 
 Static hosting must serve `index.html` for application routes so direct
 comparison links and refreshes work. Trunk's development server provides this
