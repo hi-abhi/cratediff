@@ -607,7 +607,11 @@ test('default full screen fills the viewport below the header and pins the summa
       assert.ok(Math.abs(frame.workspace.bottom - frame.height) <= 1);
       assert.ok(Math.abs(frame.diff.bottom - frame.height) <= 1, 'diff reaches the viewport bottom');
       if (expectedLayout === 'standard') {
-        assert.equal(frame.workspace.width, Math.min(1240, frame.width - (frame.width <= 640 ? 32 : 64)));
+        const standardWidth = Math.min(1240, frame.width);
+        assert.equal(frame.workspace.width, standardWidth);
+        assert.equal(frame.workspace.left, (frame.width - standardWidth) / 2,
+          'Standard fills smaller screens and centers on wider screens');
+        assert.equal(frame.workspace.right, (frame.width + standardWidth) / 2);
         assert.equal(frame.navigation.left, frame.workspace.left, 'header and workspace align on the left');
         assert.equal(frame.navigation.right, frame.workspace.right, 'header and workspace align on the right');
       } else {
@@ -706,7 +710,7 @@ test('default full screen fills the viewport below the header and pins the summa
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     await layout.getByRole('button', { name: 'Standard', exact: true }).click();
     await page.getByRole('button', { name: 'Done', exact: true }).click();
-    for (const [width, height] of [[2560, 1000], [1440, 900], [951, 800], [950, 800], [768, 800], [640, 800], [390, 844], [320, 650]]) {
+    for (const [width, height] of [[2560, 1000], [1440, 900], [1304, 900], [1241, 900], [1240, 900], [1239, 900], [951, 800], [950, 800], [768, 800], [641, 800], [640, 800], [390, 844], [320, 650]]) {
       await page.setViewportSize({ width, height });
       await checkFrame(true, 'standard');
       await page.getByRole('button', { name: 'Hide file sidebar', exact: true }).click();

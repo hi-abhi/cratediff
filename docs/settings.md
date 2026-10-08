@@ -65,8 +65,9 @@ Full screen on load, preserving the other saved preferences.
 
 Standard keeps the comparison layout capped at 1240 px and centers the header
 contents at the same width. The workspace meets the header and extends to the
-viewport bottom without vertical margins or padding. Smaller screens retain
-their responsive side gutters. Other pages keep their usual width.
+viewport bottom without vertical margins or padding. At 1240 px or narrower,
+the header contents and workspace fill the available width without side gutters.
+Other pages keep their usual width.
 
 Full screen uses the full viewport width for the header and workspace.
 Both layouts fill the viewport below the shared header to the bottom edge.

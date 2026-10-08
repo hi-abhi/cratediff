@@ -38,8 +38,8 @@ code, pre { font-family: var(--font-mono); }
 button, a, input { -webkit-tap-highlight-color: transparent; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
 .app { display: flex; flex-direction: column; min-height: 100vh; }
-.container,
-:root[data-code-width="standard"] .app:has(.comparison-page) .nav-content { width: min(var(--container-max-width, 1240px), calc(100% - 64px)); margin-inline: auto; }
+.container { width: min(var(--container-max-width, 1240px), calc(100% - 64px)); margin-inline: auto; }
+:root[data-code-width="standard"] .app:has(.comparison-page) :is(.container, .nav-content) { width: min(var(--container-max-width, 1240px), 100%); margin-inline: auto; }
 :root[data-code-width="fullscreen"] .app:has(.comparison-page) .container { --container-max-width: 100%; }
 .navbar { background: var(--surface); border-bottom: 1px solid var(--border); }
 .nav-content { position: relative; display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 56px; padding: 8px 8px 8px 16px; gap: 16px; }
@@ -235,8 +235,7 @@ h1 { margin: 0; font-size: clamp(32px, 5vw, 46px); font-weight: 650; letter-spac
 }
 
 @media (max-width: 640px) {
-  .container,
-  :root[data-code-width="standard"] .app:has(.comparison-page) .nav-content { width: calc(100% - 32px); }
+  .container { width: calc(100% - 32px); }
   .diff-workspace { grid-template-columns: 1fr; }
   .diff-workspace.sidebar-collapsed { grid-template-columns: 1fr; }
   .sidebar-rail { align-items: flex-start; border-right: 0; border-bottom: 1px solid var(--border); }

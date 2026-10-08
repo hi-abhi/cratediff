@@ -154,7 +154,8 @@ extending to the viewport bottom. The tree's own virtualized scroll area and the
 independently; the document stays still. On narrow screens the two panels
 stack within the same bounded workspace. The summary stays pinned to the
 sidebar bottom. Standard caps the header contents and workspace at the same
-1240 px width; Full screen uses the full viewport width. Neither comparison
+1240 px width, filling the viewport without side gutters at or below that width;
+Full screen uses the full viewport width. Neither comparison
 layout has top or bottom workspace gutters.
 
 Pierre components render their internals in shadow DOM. The tree host receives
