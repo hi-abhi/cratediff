@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,11 +7,25 @@
     <meta name="theme-color" content="#181c22" media="(prefers-color-scheme: dark)" />
     <meta name="description" content="View diffs for Rust crates and compare their published versions with Crate Diff." />
     <title>Crate Diff - View diffs between Rust crate versions</title>
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Crate Diff" />
+    <meta property="og:title" content="Crate Diff - View diffs between Rust crate versions" />
+    <meta property="og:description" content="View diffs for Rust crates and compare their published versions with Crate Diff." />
+    <meta property="og:url" content="https://cratediff.com/" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:image" content="https://cratediff.com/social-preview.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" />
     <link data-trunk rel="css" href="style.css" />
     <link data-trunk rel="copy-dir" href="public/assets" />
     <link data-trunk rel="copy-file" href="public/logo.svg" />
     <link data-trunk rel="copy-file" href="public/favicon.ico" />
+    <link data-trunk rel="copy-file" href="public/social-preview.png" />
     <script src="/assets/settings.js"></script>
     <script type="module" src="/assets/pierre.js"></script>
     <link data-trunk rel="rust" data-wasm-opt="z" data-wasm-opt-params="--converge" />

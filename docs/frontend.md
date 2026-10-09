@@ -179,10 +179,15 @@ CSS selectors do not style the internals of those shadow roots.
 3. [`index.html`](../index.html) tells Trunk to compile Rust to WebAssembly,
    process `style.css`, and copy the generated assets directory. It also copies
    the checked-in [`public/logo.svg`](../public/logo.svg) and
-   [`public/favicon.ico`](../public/favicon.ico) to the site root. The shared
+   [`public/favicon.ico`](../public/favicon.ico), along with the social preview
+   image, to the site root. The shared
    header uses `/logo.svg` beside the Crate Diff name, and the document declares
    `/favicon.ico` as its favicon. These source assets remain separate from the
    generated directory that esbuild recreates.
+   The application loads Inter's variable weights from Google Fonts with
+   `display=swap` and preconnects to its stylesheet and font hosts. `style.css`
+   uses Inter as the main sans-serif font, with system font fallbacks. Code
+   and diff text continue to use the separate monospace preference.
 4. The page first loads `/assets/settings.js`, then `/assets/pierre.js`;
    highlighting modules are loaded from
    locally served chunks when needed. Release builds also optimize WebAssembly
@@ -201,6 +206,33 @@ fallback to `index.html` for application routes so a direct comparison link or
 search-page refresh can initialize the router. Missing static assets should
 still return an asset error. The application displays routed not-found states;
 the static application's fallback document is normally served with HTTP 200.
+
+### Link previews
+
+[`index.html`](../index.html) includes Open Graph metadata in
+the static HTML so crawlers can read the site title, description, production URL,
+and preview image without running WebAssembly. The tags use absolute HTTPS URLs
+for `cratediff.com`, and include the image's type, dimensions, and alt text.
+
+[`public/social-preview.png`](../public/social-preview.png) renders the existing
+crate logo above the site name in bold Inter text colored `rgb(85, 65, 49)`, centered on a neutral
+background at 1200 × 630 pixels. It is checked
+in and copied by Trunk, so deployment does not require a browser to generate it.
+After changing the source logo, font, or preview styling, regenerate it with:
+
+```sh
+npx playwright install chromium
+npm run generate:preview
+```
+
+The [generator](../scripts/generate-social-image.mjs) uses the project's existing
+Playwright dependency and embeds a local Inter 4.1 font from `scripts/fonts/`,
+waiting for it to load before capturing the image. This font is used only to
+generate the preview and is not copied into the deployed site; its SIL Open Font
+License is included in [`scripts/fonts/OFL.txt`](../scripts/fonts/OFL.txt).
+The metadata describes the site as a whole. GitHub Pages
+serves direct application routes through `404.html` with HTTP status 404, which
+some preview crawlers reject even when the HTML contains these tags.
 
 ### WebAssembly size
 
