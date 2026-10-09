@@ -5,10 +5,11 @@
 [`Home`](../src/views/home.rs) loads
 `https://crates.io/api/v1/summary` through
 [`fetch_summary`](../src/data.rs). The home page displays the Most Downloaded
-and Just Updated lists; other response fields are ignored. Typing only changes
-the search draft, leaving these lists unchanged. Pressing Enter submits the
-shared search form and navigates to the registry search page. The home form
-omits the submit button; the search page retains it.
+and Just Updated lists; other response fields are ignored. Home provides a
+central search field and hides the header search. Typing only changes its draft,
+leaving these lists unchanged. Pressing Enter navigates to the registry search
+page, which has its own search form and submit button. The home form omits the
+submit button.
 
 [`SearchPage`](../src/views/search.rs) separates the editable input from the
 query in the URL:

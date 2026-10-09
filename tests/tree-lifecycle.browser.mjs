@@ -34,7 +34,11 @@ async function checkCompactHeader(page) {
   assert.ok(frame.header.height <= 110, 'compact header uses at most two rows');
   assert.equal(frame.about.top, frame.settings.top, 'utility icons share the logo row');
   assert.ok(Math.abs(frame.brand.top + frame.brand.height / 2 - (frame.about.top + frame.about.height / 2)) <= 1);
-  assert.ok(frame.search.top >= frame.about.bottom, 'search stays below the logo row');
+  if (frame.search) {
+    assert.ok(frame.search.top >= frame.about.bottom, 'search stays below the logo row');
+  } else {
+    assert.ok(frame.header.height <= 57, 'home header stays on one row without search');
+  }
   for (const control of [frame.brand, frame.about, frame.settings, frame.search, frame.crate, frame.old, frame.next].filter(Boolean)) {
     assert.ok(control.left >= 0 && control.right <= frame.width, 'header controls stay inside the viewport');
   }
@@ -44,7 +48,8 @@ async function checkCompactHeader(page) {
     assert.ok(Math.abs(frame.crate.top + frame.crate.height / 2 - (frame.about.top + frame.about.height / 2)) <= 1);
     assert.equal(frame.old.top, frame.next.top, 'versions share a row');
     assert.equal(frame.search.bottom, frame.old.bottom, 'search and version inputs align');
-    assert.ok(frame.search.right <= frame.old.left && frame.old.right < frame.next.left, 'second-row inputs never overlap');
+    assert.ok(frame.old.right < frame.next.left && frame.next.right <= frame.search.left,
+      'version selectors precede search without overlapping');
     assert.ok(frame.old.width <= 126 && frame.next.width <= 126, 'mobile selectors stay compact');
     assert.ok(frame.old.width >= frame.versionTextWidths[0] && frame.next.width >= frame.versionTextWidths[1],
       'selected version numbers remain fully readable');
@@ -85,7 +90,10 @@ test('home keeps discovery lists intact and searches the registry only on Enter'
     assert.equal(await page.locator('header a[href="/search"]').count(), 0);
     const discoveryLists = await page.locator('.summary').innerText();
     const search = page.getByRole('searchbox', { name: 'Search crates.io', exact: true });
+    assert.equal(await page.locator('header form[role="search"]').count(), 0);
+    assert.equal(await page.locator('.home-page form[role="search"]').count(), 1);
     assert.equal(await page.locator('.home-page form[role="search"] button').count(), 0);
+    assert.equal(await page.getByRole('searchbox').count(), 1, 'home uses only its central search');
     await search.fill('not-listed');
     // Allow longer than the registry page's debounce to catch accidental
     // search-on-type as well as local filtering.
@@ -96,6 +104,8 @@ test('home keeps discovery lists intact and searches the registry only on Enter'
     await search.press('Enter');
     await page.waitForURL('**/search/not-listed');
     await page.getByRole('heading', { name: 'Results for “not-listed”', exact: true }).waitFor();
+    assert.equal(await page.locator('header form[role="search"]').count(), 1,
+      'header search returns when leaving home');
     assert.equal(await page.locator('.search-results .card h3').innerText(), 'not-listed');
     assert.equal(await page.getByRole('link', { name: 'not-listed', exact: true }).getAttribute('href'), '/crate/not-listed');
     assert.deepEqual(searches, ['not-listed']);
@@ -103,6 +113,8 @@ test('home keeps discovery lists intact and searches the registry only on Enter'
     await page.locator('.summary .card').first().waitFor();
     assert.equal(await page.locator('.summary').innerText(), discoveryLists);
     assert.equal(await search.inputValue(), '');
+    assert.equal(await page.locator('header form[role="search"]').count(), 0,
+      'header search disappears when returning home');
     assert.deepEqual(errors, []);
   } finally {
     await browser.close();

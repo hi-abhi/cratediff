@@ -37,8 +37,9 @@ The logo is 36 px on desktop and 32 px on narrow screens.
 In Standard comparison mode the header contents match the centered workspace
 width. Full screen and other pages use the full viewport width for the header.
 At widths up to 950 px, the header uses two rows. The logo, crate name, and
-About/Settings icons share the first row. Search and compact From/To selectors
-share the second row on comparisons; search fills that row on other pages.
+About/Settings icons share the first row. Compact From/To selectors followed
+by search share the second row on comparisons; search fills that row on other pages
+except Home, where header search is hidden and the header stays on one row.
 The header's Search for crates field submits to registry search on Enter,
 including exact crate names. Selecting a result opens its comparison page.
 [`AboutMenu`](../src/components/about_menu.rs) replaces the About page with a
@@ -146,7 +147,7 @@ backgrounds, surfaces, text, borders, accents, and selection. The folder area
 uses a darker `--tree-background` extending to the sidebar edges and bottom;
 its compact toolbar keeps the regular surface. Additions, deletions, and
 modified-file indicators retain distinct semantic colors.
-Home uses two columns and a short heading above the search form. Home and
+Home uses two columns and a short heading above its central search form. Home and
 search results share compact card spacing and larger version labels.
 The page layout adapts the compact header and sidebar at smaller widths.
 Both comparison layouts give the app a bounded `100dvh` layout below the fixed header,
