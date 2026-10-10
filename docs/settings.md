@@ -26,7 +26,7 @@ to JSON snapshots, and unsubscribes before releasing its Rust callback.
 | `crate-diff.settings` | JSON with `mode`, `fontSize`, `codeWidth`, `lightTheme`, and `darkTheme` |
 | `font-mono` | Font label; absent for App default |
 
-A small synchronous `assets/settings.js` bundle applies preferences in the
+A small synchronous `assets/settings-<hash>.js` bundle applies preferences in the
 document head before the workspace renders. Storage access is guarded:
 unsupported values fall back to defaults, and blocked storage leaves the
 settings functional for the page session. Storage events synchronize tabs.

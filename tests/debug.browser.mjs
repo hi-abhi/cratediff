@@ -36,7 +36,7 @@ test('debug route shows empty caches and saved local storage on a fresh load', {
     assert.equal(storage.entry_count, 4);
     assert.deepEqual(storage.entries, {
       'crate-diff.settings': {
-        mode: 'dark', fontSize: 18, codeWidth: 'fullscreen', lightTheme: 'pierre-light', darkTheme: 'pierre-dark',
+        mode: 'dark', fontSize: 18, codeWidth: 'fullscreen', lightTheme: 'github-light-default', darkTheme: 'github-dark-default',
       },
       'font-mono': 'JetBrains Mono',
       html: '<script>throw(1)</script>',

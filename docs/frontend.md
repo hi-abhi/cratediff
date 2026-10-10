@@ -192,8 +192,11 @@ CSS selectors do not style the internals of those shadow roots.
    `display=swap` and preconnects to its stylesheet and font hosts. `style.css`
    uses Inter as the main sans-serif font, with system font fallbacks. Code
    and diff text continue to use the separate monospace preference.
-4. The page first loads `/assets/settings.js`, then `/assets/pierre.js`;
-   highlighting modules are loaded from
+4. Trunk gives both JavaScript entry bundles content-hashed filenames. The page
+   first loads `/assets/settings-<hash>.js`, then `/assets/pierre-<hash>.js`;
+   changed bundles receive new URLs so browser/CDN caches cannot reuse an older
+   entry bundle with the new HTML. Both remain in `/assets/` so relative imports
+   resolve correctly. Highlighting modules are loaded from
    locally served chunks when needed. Release builds also optimize WebAssembly
    through the configured `data-wasm-opt="z"` setting and `--converge`, which
    repeats optimization passes while the binary continues to shrink.
