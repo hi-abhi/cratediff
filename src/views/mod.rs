@@ -1,3 +1,4 @@
+pub mod browse;
 pub mod debug;
 pub mod diff;
 pub mod home;

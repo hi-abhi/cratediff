@@ -1,7 +1,8 @@
 use crate::{
     components::{comparison_header::ComparisonHeaderMount, navigation::Header},
     views::{
-        debug::DebugPage, diff::DiffPage, home::Home, not_found::NotFound, search::SearchPage,
+        browse::BrowsePage, debug::DebugPage, diff::DiffPage, home::Home, not_found::NotFound,
+        search::SearchPage,
     },
 };
 use leptos::{html, prelude::*};
@@ -27,6 +28,7 @@ pub fn App() -> impl IntoView {
                         <Route path=path!("/debug") view=DebugPage/>
                         <Route path=path!("/404") view=NotFound/>
                         <Route path=path!("/search/:query") view=SearchPage/>
+                        <Route path=path!("/browse/:krate/:version") view=BrowsePage/>
                         <Route path=path!("/crate/:krate") view=DiffPage/>
                         <Route path=path!("/crate/:krate/:old/:new/*file") view=DiffPage/>
                     </Routes>

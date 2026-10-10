@@ -75,6 +75,10 @@ source resource depends on that resolved pair and its own retry counter. Two
 different releases load concurrently with `futures::join!`; comparing a version
 with itself loads it once and shares the resulting file map.
 
+`/browse/:krate/:version` redirects to that same-version comparison. The file
+tree lists all source files, and unchanged text uses the full-file renderer.
+The browse route reuses version resolution, archive verification, and caches.
+
 File navigation does not change the resolved pair. The version memo's equality
 check avoids restarting archive loading for those navigations.
 

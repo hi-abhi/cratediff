@@ -10,6 +10,7 @@ framework and talks directly to the crates.io API.
 
 - `/`: crates.io summary lists.
 - `/search/:query?page=<N>`: crates.io search results with optional pagination.
+- `/browse/:crate/:version`: view a release's source; redirects to `/crate/:crate/:version/:version`.
 - `/crate/:crate`: compare the previous and latest published versions.
 - `/crate/:crate/:old/:new`: compare specific versions.
 - `/crate/:crate/:old/:new/*file`: share a comparison for a specific file.

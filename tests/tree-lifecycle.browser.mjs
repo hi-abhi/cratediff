@@ -172,6 +172,77 @@ function archive(version, large = false) {
   return gzipSync(Buffer.concat([...chunks, Buffer.alloc(1024)]));
 }
 
+test('browse links redirect to a full source viewer and download each release once', { timeout: 30000 }, async () => {
+  const version = '1.0.2+build.1';
+  const archives = new Map([
+    ['1.0.1', archive('1.0.1')],
+    [version, archive(version, true)],
+  ]);
+  const versions = [...archives].map(([num, bytes]) => ({
+    num, checksum: createHash('sha256').update(bytes).digest('hex'), yanked: false,
+  }));
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    page.setDefaultTimeout(5000);
+    page.setDefaultNavigationTimeout(5000);
+    const errors = [];
+    const downloads = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.route(`https://crates.io/api/v1/crates/${name}`, route => route.fulfill({
+      json: { crate: { id: name, max_version: version, downloads: 0 }, versions },
+      headers: { 'access-control-allow-origin': '*' },
+    }));
+    await page.route(`https://static.crates.io/crates/${name}/*`, route => {
+      const filename = decodeURIComponent(new URL(route.request().url()).pathname.split('/').at(-1));
+      const requested = filename.slice(name.length + 1, -'.crate'.length);
+      downloads.push(requested);
+      return route.fulfill({
+        body: archives.get(requested), contentType: 'application/octet-stream',
+        headers: { 'access-control-allow-origin': '*' },
+      });
+    });
+    for (const alias of [encodeURIComponent(version), 'latest']) {
+      const before = downloads.length;
+      await page.goto(`${base}/browse/${name}/${alias}`);
+      await page.waitForURL(`${base}/crate/${name}/${alias}/${alias}`);
+      await page.locator('.pierre-diff-host [data-code]').first().waitFor();
+      assert.equal(await page.title(), `${name} - Crate Diff`);
+      assert.equal(await page.locator('#old-version').inputValue(), version);
+      assert.equal(await page.locator('#new-version').inputValue(), version);
+      assert.match(await page.locator('.comparison-summary').innerText(), /0 changed files/);
+      await page.getByRole('button', { name: 'Search files', exact: true }).click();
+      const search = page.getByRole('searchbox', { name: 'Search files', exact: true });
+      await search.fill('README.md');
+      await page.getByRole('treeitem', { name: 'README.md', exact: true }).click();
+      await page.locator('.pierre-diff-host [data-code]').filter({ hasText: 'Unchanged documentation.' }).waitFor();
+      await search.fill('lib.rs');
+      await page.getByRole('treeitem', { name: 'lib.rs', exact: true }).click();
+      const fileUrl = `${base}/crate/${name}/${encodeURIComponent(version)}/${encodeURIComponent(version)}/src/lib.rs`;
+      await page.waitForURL(fileUrl);
+      const source = page.locator('.pierre-diff-host [data-code]').first();
+      await source.filter({ hasText: 'VALUE_399' }).waitFor();
+      assert.ok((await source.textContent()).includes('VALUE_0'));
+      assert.equal(downloads.length, before + 1, 'same-version browsing downloads one archive');
+      assert.equal(downloads.at(-1), version);
+      await page.reload();
+      await source.filter({ hasText: 'VALUE_399' }).waitFor();
+      assert.equal(page.url(), fileUrl, 'source file links survive reload');
+      assert.equal(downloads.length, before + 2, 'reload also downloads only one archive');
+    }
+    const before = downloads.length;
+    await page.goto(`${base}/browse/${name}/%5E1`);
+    await page.waitForURL(`${base}/crate/${name}/%5E1/%5E1`);
+    await page.getByRole('heading', { name: 'Not found', exact: true }).waitFor();
+    assert.equal(downloads.length, before, 'unsupported versions do not download source');
+    await page.goto(`${base}/browse`);
+    await page.getByRole('heading', { name: 'Page Not Found', exact: true }).waitFor();
+    assert.deepEqual(errors, []);
+  } finally {
+    await browser.close();
+  }
+});
+
 test('short crate links resolve versions under the crate prefix and survive reload', { timeout: 30000 }, async () => {
   const archives = new Map(['1.0.0', '1.0.1', '1.0.2'].map(version => [version, archive(version)]));
   const versions = [...archives].map(([num, bytes]) => ({

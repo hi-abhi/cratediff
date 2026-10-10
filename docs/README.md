@@ -63,6 +63,7 @@ declared before the crate routes.
 | `/debug` | `DebugPage`: cache inventory/size and localStorage diagnostics, linked from About |
 | `/404`, or an unmatched route | `NotFound` |
 | `/search/:query` | `SearchPage`: an encoded, nonblank search term; optional `?page=N` |
+| `/browse/:krate/:version` | `BrowsePage`: redirects to `/crate/:krate/:version/:version` to browse source |
 | `/crate/:krate` | `DiffPage`: resolves previous/latest and redirects to concrete version strings |
 | `/crate/:krate/:old/:new/*file` | `DiffPage`: resolves the comparison and optionally selects a file |
 
