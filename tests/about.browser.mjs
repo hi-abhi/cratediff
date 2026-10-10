@@ -16,7 +16,7 @@ test('Settings and About share accessible tabs, dismissal, and a Debug link on n
       headers: { 'access-control-allow-origin': '*' },
     }));
     await page.goto(base);
-    await page.getByRole('heading', { name: 'View diffs for Rust crates.', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Compare diffs for Rust crate versions', exact: true }).waitFor();
     const homeUrl = page.url();
     const homeTitle = await page.title();
     const trigger = page.getByRole('button', { name: 'Settings', exact: true });
@@ -55,7 +55,7 @@ test('Settings and About share accessible tabs, dismissal, and a Debug link on n
     assert.equal(await aboutTab.getAttribute('aria-selected'), 'true');
     assert.equal(page.url(), homeUrl);
     assert.equal(await page.title(), homeTitle);
-    assert.deepEqual(await dialog.locator('.about-body h3').allTextContents(), ['How it works', 'Acknowledgements']);
+    assert.deepEqual(await dialog.locator('.about-body h3').allTextContents(), ['How it works', 'Acknowledgements', 'Source']);
     assert.equal(await dialog.getByRole('link', { name: 'Debug', exact: true }).getAttribute('href'), '/debug');
     assert.equal(await page.evaluate(() => document.activeElement?.closest('dialog')?.id), 'settings-dialog');
     for (let index = 0; index < 8; index++) {
@@ -114,7 +114,7 @@ test('Settings and About share accessible tabs, dismissal, and a Debug link on n
     assert.equal(await dialog.count(), 0, 'the modal closes before navigation');
     assert.equal(await page.title(), 'Debug - Crate Diff');
     await page.goBack();
-    await page.getByRole('heading', { name: 'View diffs for Rust crates.', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Compare diffs for Rust crate versions', exact: true }).waitFor();
     assert.equal(await dialog.count(), 0);
     assert.equal(await page.title(), homeTitle);
     assert.deepEqual(errors, []);

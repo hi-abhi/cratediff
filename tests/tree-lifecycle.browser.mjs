@@ -9,7 +9,7 @@ import { DIFF_THEMES } from '../js/settings-values.js';
 
 const base = process.env.TEST_BASE_URL ?? 'http://127.0.0.1:8080';
 const name = 'tree-lifecycle';
-const homeTitle = 'Crate Diff - View diffs between Rust crate versions';
+const homeTitle = 'Crate Diff - Compare diffs for Rust crate versions';
 
 async function checkCompactHeader(page) {
   const frame = await page.evaluate(() => {
@@ -554,10 +554,10 @@ test('tree stays in its sidebar through downloads, cached versions and navigatio
       headers: { 'access-control-allow-origin': '*' },
     }));
     await page.getByRole('link', { name: 'Crate Diff', exact: true }).click();
-    await page.getByRole('heading', { name: 'View diffs for Rust crates.', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Compare diffs for Rust crate versions', exact: true }).waitFor();
     assert.equal(await page.title(), homeTitle);
     await page.reload();
-    await page.getByRole('heading', { name: 'View diffs for Rust crates.', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Compare diffs for Rust crate versions', exact: true }).waitFor();
     assert.equal(await page.title(), homeTitle, 'the home title also applies on a fresh load');
     assert.deepEqual(errors, []);
   } finally {

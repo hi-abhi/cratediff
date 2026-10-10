@@ -23,7 +23,7 @@ pub fn Home() -> impl IntoView {
         <div class="home-page">
                 <PageTitle/>
                 <section class="hero" aria-labelledby="page-title">
-                    <h1 id="page-title">"View diffs for Rust crates."</h1>
+                    <h1 id="page-title">"Compare diffs for Rust crate versions"</h1>
                     <SearchForm query=query.into()
                         on_input=Callback::new(move |value| set_query.set(value))
                         on_search=on_search id="home-search" show_button=false/>

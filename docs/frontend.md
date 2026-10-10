@@ -8,7 +8,7 @@ identity and version controls.
 Page views own their request resources and derive state from route parameters.
 Components receive the data and callbacks needed to render their part of a page.
 The document's default title is
-`Crate Diff - View diffs between Rust crate versions`. Routed views mount the
+`Crate Diff - Compare diffs for Rust crate versions`. Routed views mount the
 shared [`PageTitle`](../src/components/page_title.rs) component; `DiffPage`
 supplies a reactive `{crate name} - Crate Diff` title from its route. Other
 pages use the default. Each incoming page sets its own title, so cleanup of an

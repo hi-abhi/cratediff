@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 
-const DEFAULT_TITLE: &str = "Crate Diff - View diffs between Rust crate versions";
+const DEFAULT_TITLE: &str = "Crate Diff - Compare diffs for Rust crate versions";
 
 #[component]
 pub fn PageTitle(#[prop(optional)] text: Option<Signal<String>>) -> impl IntoView {
