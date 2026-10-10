@@ -1,35 +1,9 @@
-# crate-diff
+# cratediff.com
 
-See [the architecture documentation](docs/README.md) for module responsibilities,
-data flow, renderer integration, and the build/deployment model.
+cratediff is a web application to compare diffs between versions of Rust crates.
 
-A Leptos wasm application to view crate version diffs. The home page fetches live crates.io
-summary data and lists **Most Downloaded** and **Just Updated**.
-Compact cards show the version, description, total downloads, and links to
-documentation and source repositories.
-
-The home search field searches the full crates.io registry when you press Enter.
-Typing leaves the Most Downloaded and Just Updated lists unchanged.
-The search page updates after a short typing pause, shows 20 results per page,
-and keeps the query and page in the URL for sharing, refreshes, and browser history.
-The header search also opens registry results on Enter. Click a crate to compare
-its previous and latest releases.
-Choose versions, filter files, hide unchanged files, and inspect
-unified or side-by-side diffs. Unchanged context can be expanded. Binary files
-show their sizes instead of a text diff.
-
-The header's settings button controls Light, Dark, or Auto appearance, diff font
-size, Standard or Full screen workspace layout, and all bundled Shiki diff
-schemes alongside Pierre Light/Dark. The scheme selector follows the active
-appearance; light and dark choices are saved independently.
-Full screen is the default unless Standard has been saved. It keeps the
-header visible and lets the tree and diff scroll independently,
-with no page scrolling. Comparison file/line counts
-appear in a fixed row at the bottom of the file sidebar.
-Standard uses the same height and panel scrolling with a centered, capped
-workspace and matching header width.
-Choose a system or installed monospace font, or preview and apply a custom font
-family. Preferences are saved locally and synchronized between tabs.
+It is a WebAssembly binary that runs entirely in the browser and doesn't need a backend.
+The app uses Leptos as the frontend framework and talks directly to the crates.io API.
 
 ## Pages and URLs
 
@@ -88,9 +62,6 @@ Start the development server:
 ```sh
 NO_COLOR=true trunk serve
 ```
-
-Open `http://127.0.0.1:8080`. An internet connection is needed to load crates.io
-data. Failed requests show an error message and a retry button.
 
 ## Build
 
