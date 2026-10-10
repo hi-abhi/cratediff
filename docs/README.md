@@ -70,8 +70,8 @@ The comparison wildcard also matches an empty file path. Both the version root
 and a selected file use the same route definition, allowing the sidebar to stay
 mounted during file navigation.
 
-The header's question mark button opens the About modal with usage, privacy,
-and project information. Its Debug link navigates to `/debug` within the app.
+The header's Settings button opens a shared dialog with Settings and About tabs.
+About contains project information and a Debug link to `/debug` within the app.
 
 Search query/page and comparison crate/version/file selections are URL state.
 Filters, changed-files-only, split/unified mode, expanded context, and retry

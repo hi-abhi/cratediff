@@ -24,7 +24,7 @@ async function checkCompactHeader(page) {
     });
     return {
       width: innerWidth, header: box('header'), brand: box('.brand'),
-      about: box('.about-trigger'), settings: box('.settings-trigger'),
+      settings: box('.settings-trigger'),
       search: box('#header-search'), crate: box('.header-crate'),
       old: box('#old-version'), next: box('#new-version'),
       versionTextWidths,
@@ -32,20 +32,19 @@ async function checkCompactHeader(page) {
   });
   if (frame.width > 950) return;
   assert.ok(frame.header.height <= 110, 'compact header uses at most two rows');
-  assert.equal(frame.about.top, frame.settings.top, 'utility icons share the logo row');
-  assert.ok(Math.abs(frame.brand.top + frame.brand.height / 2 - (frame.about.top + frame.about.height / 2)) <= 1);
+  assert.ok(Math.abs(frame.brand.top + frame.brand.height / 2 - (frame.settings.top + frame.settings.height / 2)) <= 1);
   if (frame.search) {
-    assert.ok(frame.search.top >= frame.about.bottom, 'search stays below the logo row');
+    assert.ok(frame.search.top >= frame.settings.bottom, 'search stays below the logo row');
   } else {
     assert.ok(frame.header.height <= 57, 'home header stays on one row without search');
   }
-  for (const control of [frame.brand, frame.about, frame.settings, frame.search, frame.crate, frame.old, frame.next].filter(Boolean)) {
+  for (const control of [frame.brand, frame.settings, frame.search, frame.crate, frame.old, frame.next].filter(Boolean)) {
     assert.ok(control.left >= 0 && control.right <= frame.width, 'header controls stay inside the viewport');
   }
   if (frame.crate) {
-    assert.ok(frame.crate.left >= frame.brand.right && frame.crate.right <= frame.about.left,
+    assert.ok(frame.crate.left >= frame.brand.right && frame.crate.right <= frame.settings.left,
       'crate identity fits between the logo and utility icons');
-    assert.ok(Math.abs(frame.crate.top + frame.crate.height / 2 - (frame.about.top + frame.about.height / 2)) <= 1);
+    assert.ok(Math.abs(frame.crate.top + frame.crate.height / 2 - (frame.settings.top + frame.settings.height / 2)) <= 1);
     assert.equal(frame.old.top, frame.next.top, 'versions share a row');
     assert.equal(frame.search.bottom, frame.old.bottom, 'search and version inputs align');
     assert.ok(frame.old.right < frame.next.left && frame.next.right <= frame.search.left,
@@ -464,8 +463,9 @@ test('tree stays in its sidebar through downloads, cached versions and navigatio
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('crate-diff.settings')).codeWidth), 'fullscreen');
     const comparisonUrl = page.url();
     const treeBeforeAbout = await page.locator('file-tree-container').elementHandle();
-    await page.getByRole('button', { name: 'About', exact: true }).click();
-    const aboutDialog = page.getByRole('dialog', { name: 'About Crate Diff', exact: true });
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await page.getByRole('tab', { name: 'About', exact: true }).click();
+    const aboutDialog = page.getByRole('dialog', { name: 'Settings and About', exact: true });
     await aboutDialog.waitFor();
     assert.equal(page.url(), comparisonUrl, 'About opens without navigating away from the diff');
     assert.equal(await page.title(), `${name} - Crate Diff`);
@@ -497,7 +497,8 @@ test('tree stays in its sidebar through downloads, cached versions and navigatio
     await page.getByRole('button', { name: 'Done', exact: true }).click();
     const downloadsBeforeDebug = downloads;
     assert.equal(await page.getByRole('link', { name: 'Debug', exact: true }).count(), 0);
-    await page.getByRole('button', { name: 'About', exact: true }).click();
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await page.getByRole('tab', { name: 'About', exact: true }).click();
     await aboutDialog.getByRole('link', { name: 'Debug', exact: true }).click();
     await page.getByRole('heading', { name: 'Debug', exact: true }).waitFor();
     const cacheDump = page.locator('pre[aria-label="Cache dump"]');
@@ -704,14 +705,16 @@ test('default full screen fills the viewport below the header and pins the summa
     await page.locator('.pierre-diff-host [data-code]').first().waitFor();
     await checkFrame();
     const comparisonUrl = page.url();
-    await page.getByRole('button', { name: 'About', exact: true }).click();
-    const aboutDialog = page.getByRole('dialog', { name: 'About Crate Diff', exact: true });
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await page.getByRole('tab', { name: 'About', exact: true }).click();
+    const aboutDialog = page.getByRole('dialog', { name: 'Settings and About', exact: true });
     await aboutDialog.waitFor();
     assert.equal(page.url(), comparisonUrl);
     assert.equal(await page.locator('file-tree-container').count(), 1);
     await aboutDialog.getByRole('button', { name: 'Done', exact: true }).click();
     await checkFrame();
-    await page.getByRole('button', { name: 'About', exact: true }).click();
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await page.getByRole('tab', { name: 'About', exact: true }).click();
     await aboutDialog.getByRole('link', { name: 'Debug', exact: true }).click();
     await page.getByRole('heading', { name: 'Debug', exact: true }).waitFor();
     assert.equal(await page.locator('.comparison-summary').count(), 0, 'route cleanup removes summary');
@@ -742,7 +745,8 @@ test('default full screen fills the viewport below the header and pins the summa
     await checkFrame(true, 'standard');
     assert.ok(await treeScroll.evaluate(element => element.scrollHeight > element.clientHeight));
     assert.ok(await diffScroll.evaluate(element => element.scrollHeight > element.clientHeight));
-    await page.getByRole('button', { name: 'About', exact: true }).click();
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await page.getByRole('tab', { name: 'About', exact: true }).click();
     await aboutDialog.getByRole('link', { name: 'Debug', exact: true }).click();
     await page.getByRole('heading', { name: 'Debug', exact: true }).waitFor();
     assert.equal(await page.locator('.nav-content').evaluate(element => element.getBoundingClientRect().width), 320);

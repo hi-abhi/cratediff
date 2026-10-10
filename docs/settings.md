@@ -1,9 +1,16 @@
 # Display settings
 
 [`SettingsMenu`](../src/components/settings_menu.rs) adds a native dialog to the
-shared header. It controls appearance, diff font size, workspace layout, diff
+shared header, with top-level Settings and About tabs. The Settings tab controls
+appearance, diff font size, workspace layout, diff
 schemes, and the monospace font. Changes apply immediately. Escape, Done, the
 close button, and clicking outside dismiss the dialog.
+Backdrop dismissal requires the click to target the dialog itself and fall
+outside its bounds. Bubbled native dropdown clicks cannot dismiss the modal.
+The dialog opens on Settings. Arrow keys, Home, and End switch tabs; settings
+remain mounted and retain their values. The About tab presents project
+information and a Debug link. Tabs and the shared footer stay visible while
+the panel content scrolls.
 Appearance and Workspace layout use button bars that expose the selected option
 through `aria-pressed`. Select menus keep their arrows inset from the edge.
 
@@ -111,19 +118,19 @@ family. Named fonts receive system fallbacks.
 
 The effective stack overrides `--font-mono` on the body, or temporarily on the
 root before the body exists at startup. Code, diff hosts, file headings, and
-version labels consume it. Body text keeps the application's system UI font.
+version labels consume it. Body text keeps the application's Inter sans-serif font.
 
-The baseline options are App default, System monospace, Monaco, Menlo, and
-Consolas. Opening settings probes a curated list of coding fonts with
-canvas metrics, once per session. Find installed fonts explicitly invokes Local
+The baseline options are App default and System monospace. Opening settings
+probes a curated list of coding fonts, including Monaco, Menlo, and Consolas,
+with canvas metrics, once per session. Only detected families are added.
+Find installed fonts explicitly invokes Local
 Font Access when available, filtering returned families by monospace metrics.
 Unavailable or denied access falls back to the curated probe. No fonts are
 downloaded.
 
-Custom font accepts another installed family. Typing previews it without saving;
-Apply stores the label. Closing the dialog or selecting another font clears the
-preview and restores the saved preference. Stored custom labels stay in the
-picker before detection runs.
+Selecting a font applies and saves it immediately; the code sample shows the
+selected font. Fonts cannot be entered manually. Previously saved font labels
+stay in the picker before detection runs.
 Invalid saved font preferences revert to App default and clear the stored override.
 
 ## Validation

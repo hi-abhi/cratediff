@@ -37,17 +37,20 @@ The logo is 36 px on desktop and 32 px on narrow screens.
 In Standard comparison mode the header contents match the centered workspace
 width. Full screen and other pages use the full viewport width for the header.
 At widths up to 950 px, the header uses two rows. The logo, crate name, and
-About/Settings icons share the first row. Compact From/To selectors followed
+Settings icon share the first row. Compact From/To selectors followed
 by search share the second row on comparisons; search fills that row on other pages
 except Home, where header search is hidden and the header stays on one row.
 The header's Search for crates field submits to registry search on Enter,
 including exact crate names. Selecting a result opens its comparison page.
-[`AboutMenu`](../src/components/about_menu.rs) replaces the About page with a
-question mark icon and native dialog. It keeps the current route, title, and
-workspace mounted while open. Escape, the close button, Done, or a backdrop
-click dismiss it. The bounded dialog scrolls its content while keeping its
-header and footer visible. Its Debug link closes the modal and navigates within
-the app, preserving source and metadata caches for inspection.
+The Settings icon opens [`SettingsMenu`](../src/components/settings_menu.rs),
+a shared native dialog with Settings and About tabs. Settings opens by default.
+The tabs use arrow keys, Home, and End for selection and keep settings mounted
+while switching. [`AboutContent`](../src/components/about_content.rs) owns the
+project information. Opening the dialog preserves the route, title, and workspace.
+Escape, the close button, Done, or a backdrop click dismiss it. Content scrolls
+within the bounded dialog while its tabs and footer stay visible. The About tab's
+Debug link closes the modal and navigates within the app, preserving source and
+metadata caches for inspection.
 
 `DiffWorkspace` passes its comparison summary as child content to `FileTree`,
 which mounts it at the bottom of the sidebar, outside the scrolling tree host.
@@ -286,6 +289,7 @@ Browser verification is needed for changes to the portal, route transitions,
 tree selection, diff display options, responsive layout, or theme handling.
 `npm test` covers settings normalization and font stack handling in JavaScript.
 `npm run test:browser` uses Playwright against a running development server.
+Install both Chromium and Firefox for the modal's dropdown-dismissal regressions.
 Its file-tree lifecycle regression supplies checksummed archive fixtures and
 checks downloads, cached comparisons, filters, route changes, reloads,
 narrow layouts, appearance button bars, and saved code width. See the

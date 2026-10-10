@@ -1,13 +1,12 @@
 export const DEFAULT_MONO_LABEL = 'App default';
 export const SYSTEM_MONO_LABEL = 'System monospace';
-export const MONO_FONTS = [
-  DEFAULT_MONO_LABEL, SYSTEM_MONO_LABEL, 'Monaco', 'Menlo', 'Consolas',
-];
+export const MONO_FONTS = [DEFAULT_MONO_LABEL, SYSTEM_MONO_LABEL];
 const MONO_FALLBACK = 'ui-monospace, Menlo, Consolas, monospace';
 const CANDIDATES = [
+  'Monaco', 'Menlo', 'Consolas',
   'JetBrains Mono', 'Fira Code', 'Source Code Pro', 'Cascadia Code', 'SF Mono',
   'Roboto Mono', 'IBM Plex Mono', 'Hack', 'Inconsolata', 'Ubuntu Mono',
-  'DejaVu Sans Mono', 'Anonymous Pro',
+  'DejaVu Sans Mono', 'Anonymous Pro', 'Berkeley Mono', 'Berkeley Mono Variable',
 ];
 const BASELINES = ['monospace', 'serif', 'sans-serif'];
 const PROBE_TEXT = 'mmmmmmmmmmlli WwXx 0123456789';

@@ -166,24 +166,28 @@ h1 { margin: 0; font-size: clamp(32px, 5vw, 46px); font-weight: 650; letter-spac
   --diffs-font-family: var(--font-mono);
 }
 .problem-actions { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; }
-.settings-trigger, .settings-close, .about-trigger, .about-close { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--text); cursor: pointer; }
-.settings-trigger:hover, .settings-close:hover, .about-trigger:hover, .about-close:hover { background: var(--tint); }
-.settings-trigger svg, .about-trigger svg { width: 19px; height: 19px; }
-.settings-dialog, .about-dialog { width: min(480px, calc(100% - 32px)); max-height: calc(100dvh - 32px); padding: 0; border: 1px solid var(--border); border-radius: 8px; color: var(--text); background: var(--surface); box-shadow: 0 20px 80px #0004; overflow: auto; }
-.settings-dialog::backdrop, .about-dialog::backdrop { background: #0006; }
-.settings-heading, .about-heading { display: flex; flex-shrink: 0; justify-content: space-between; align-items: center; padding: 12px 24px; border-bottom: 1px solid var(--border); gap: 16px; }
-.settings-heading h2, .about-heading h2 { margin: 0; font-size: 18px; letter-spacing: -.5px; }
-.settings-close, .about-close { font-size: 23px; }
-.about-dialog { width: min(640px, calc(100% - 32px)); overflow: hidden; }
-.about-dialog[open] { display: flex; flex-direction: column; }
-.about-body { min-height: 0; padding: 22px 24px; overflow: auto; overscroll-behavior: contain; font-size: 14px; line-height: 1.7; color: var(--muted); }
+.settings-trigger, .settings-close { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--text); cursor: pointer; }
+.settings-trigger:hover, .settings-close:hover { background: var(--tint); }
+.settings-trigger svg { width: 19px; height: 19px; }
+.settings-dialog { width: min(480px, calc(100% - 32px)); height: min(760px, calc(100dvh - 32px)); padding: 0; border: 1px solid var(--border); border-radius: 8px; color: var(--text); background: var(--surface); box-shadow: 0 20px 80px #0004; overflow: hidden; }
+.settings-dialog[open] { display: flex; flex-direction: column; }
+.settings-dialog::backdrop { background: #0006; }
+.settings-heading { display: flex; flex-shrink: 0; justify-content: space-between; align-items: center; padding: 12px 24px; border-bottom: 1px solid var(--border); gap: 16px; }
+.settings-close { font-size: 23px; }
+.settings-tabs { display: flex; gap: 6px; }
+.settings-tabs button { padding: 6px 10px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font-weight: 600; cursor: pointer; }
+.settings-tabs button:hover { background: var(--tint); }
+.settings-tabs button[aria-selected="true"] { background: var(--tint); color: var(--text); }
+.settings-panels { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.settings-panel[hidden] { display: none; }
+.about-body { padding: 22px 24px; font-size: 14px; line-height: 1.7; color: var(--muted); }
 .about-body p { margin: 0 0 14px; }
 .about-body p:last-child { margin-bottom: 0; }
 .about-body h3 { margin: 22px 0 8px; font-size: 15px; color: var(--text); }
-.about-body a, .about-footer a { color: var(--accent); text-decoration: underline; }
+.about-body a, .settings-footer a { color: var(--accent); text-decoration: underline; }
 .settings-body { display: flex; flex-direction: column; gap: 20px; padding: 22px 24px; }
 .setting-field { display: flex; flex-direction: column; gap: 8px; min-width: 0; font-size: 13px; }
-.setting-field select, .custom-font input { width: 100%; min-width: 0; border: 1px solid var(--border); border-radius: 4px; background-color: var(--background); color: var(--text); padding: 9px 10px; }
+.setting-field select { width: 100%; min-width: 0; border: 1px solid var(--border); border-radius: 4px; background-color: var(--background); color: var(--text); padding: 9px 10px; }
 .setting-field select { padding-right: 36px; }
 .setting-buttons { display: flex; border: 1px solid var(--border); border-radius: 4px; background: var(--background); }
 .setting-buttons button { flex: 1; min-width: 0; padding: 9px 10px; border: 0; border-radius: 0; background: transparent; color: var(--text); cursor: pointer; }
@@ -192,15 +196,12 @@ h1 { margin: 0; font-size: clamp(32px, 5vw, 46px); font-weight: 650; letter-spac
 .setting-buttons button:last-child { border-radius: 0 3px 3px 0; }
 .setting-buttons button:hover { background: var(--tint); }
 .setting-buttons button[aria-pressed="true"] { background: var(--accent); color: var(--brand-icon-text); }
-.custom-font { display: flex; gap: 8px; }
-.custom-font .button { flex-shrink: 0; }
 .font-discovery p { color: var(--muted); font-size: 11px; line-height: 1.6; margin: 8px 0 0; }
 .font-discovery a { color: var(--accent); text-decoration: underline; }
 .font-discovery button:disabled { opacity: .6; cursor: wait; }
 .font-preview { border: 1px solid var(--border); border-radius: 4px; padding: 12px; background: var(--background); overflow: auto; }
 .font-preview code { white-space: pre; font-size: var(--diff-font-size); line-height: var(--diff-line-height); }
-.settings-footer, .about-footer { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; padding: 16px 24px; border-top: 1px solid var(--border); gap: 12px; }
-.about-footer { font-size: 13px; }
+.settings-footer { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; padding: 16px 24px; border-top: 1px solid var(--border); gap: 12px; font-size: 13px; }
 .text-button { padding: 0; background: none; border: 0; color: var(--muted); font-size: 12px; cursor: pointer; }
 .text-button:hover { color: var(--text); }
 
@@ -248,10 +249,10 @@ h1 { margin: 0; font-size: clamp(32px, 5vw, 46px); font-weight: 650; letter-spac
   .results-heading p { margin: 4px 0; }
   .summary { grid-template-columns: 1fr; gap: 32px; }
   .intro { font-size: 14px; }
-  .settings-heading, .about-heading { padding: 12px 18px; }
+  .settings-heading { padding: 12px 18px; }
   .settings-body { padding: 18px; }
   .about-body { padding: 18px; }
-  .settings-footer, .about-footer { padding: 16px 18px; }
+  .settings-footer { padding: 16px 18px; }
   .diff-workspace { grid-template-rows: minmax(0, .4fr) minmax(0, 1fr); }
   .diff-workspace.sidebar-collapsed { grid-template-rows: 35px minmax(0, 1fr); }
 }

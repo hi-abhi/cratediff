@@ -1,6 +1,4 @@
-use super::{
-    about_menu::AboutMenu, comparison_header::ComparisonHeaderMount, settings_menu::SettingsMenu,
-};
+use super::{comparison_header::ComparisonHeaderMount, settings_menu::SettingsMenu};
 use crate::search::search_url;
 use leptos::prelude::*;
 use leptos_router::hooks::{use_location, use_navigate};
@@ -42,7 +40,6 @@ pub fn Header(comparison_mounts: ComparisonHeaderMount) -> impl IntoView {
                     </Show>
                 </div>
                 <div class="nav-tools">
-                    <AboutMenu/>
                     <SettingsMenu/>
                 </div>
             </nav>

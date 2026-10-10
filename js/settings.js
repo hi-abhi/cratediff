@@ -10,7 +10,6 @@ const media = window.matchMedia('(prefers-color-scheme: dark)');
 const listeners = new Set();
 let settings = { ...DEFAULT_SETTINGS };
 let monoFont = DEFAULT_MONO_LABEL;
-let preview = null;
 let detectedFonts = [];
 let detecting = false;
 
@@ -41,7 +40,7 @@ function resolvedMode() {
 }
 
 function applyFont() {
-  const stack = stackForLabel(preview ?? monoFont);
+  const stack = stackForLabel(monoFont);
   // The startup script runs in <head>. Use the root until <body> exists,
   // then move the override to the body, leaving the CSS default intact.
   const target = document.body ?? document.documentElement;
@@ -90,7 +89,6 @@ function subscribe(listener) {
 
 function setSetting(key, value) {
   if (key === 'monoFont') {
-    preview = null;
     monoFont = normalizeFontLabel(value);
     try {
       if (monoFont === DEFAULT_MONO_LABEL) localStorage.removeItem(FONT_KEY);
@@ -128,10 +126,6 @@ window.CrateSettings = {
   subscribeJson: callback => subscribe(value => callback(JSON.stringify(value))),
   unsubscribe: stop => stop(),
   set: setSetting,
-  previewFont(label) {
-    preview = label == null ? null : normalizeFontLabel(label);
-    applyFont();
-  },
   open(dialog) {
     dialog.showModal();
     probeKnownFonts().then(mergeFonts);
@@ -149,7 +143,6 @@ window.CrateSettings = {
   reset() {
     settings = { ...DEFAULT_SETTINGS };
     monoFont = DEFAULT_MONO_LABEL;
-    preview = null;
     try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(FONT_KEY); }
     catch { /* Defaults still apply in memory. */ }
     notify();

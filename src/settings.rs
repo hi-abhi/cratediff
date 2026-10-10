@@ -58,8 +58,6 @@ extern "C" {
     pub fn unsubscribe_settings(subscription: &JsValue);
     #[wasm_bindgen(js_namespace = CrateSettings, js_name = set)]
     pub fn set_setting(key: &str, value: &str);
-    #[wasm_bindgen(js_namespace = CrateSettings, js_name = previewFont)]
-    pub fn preview_font(label: Option<String>);
     #[wasm_bindgen(js_namespace = CrateSettings, js_name = open)]
     pub fn open_settings(dialog: &JsValue);
     #[wasm_bindgen(js_namespace = CrateSettings, js_name = close)]

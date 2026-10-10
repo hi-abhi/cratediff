@@ -154,7 +154,7 @@ storage, LRU eviction, or deduplication of concurrent in-flight requests.
 Reloading the application clears them. A cached release skips another archive
 download and extraction.
 
-The `/debug` route, linked from the About modal, reads these maps through `cache_snapshot`. It lists
+The `/debug` route, linked from the dialog's About tab, reads these maps through `cache_snapshot`. It lists
 cached crate/version identities, individual entry sizes, each cache's total,
 and a combined total. Metadata sizes are serialized cached JSON bytes; source
 sizes are uncompressed file-content bytes. These are payload sizes, excluding

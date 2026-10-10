@@ -1,4 +1,4 @@
-pub mod about_menu;
+pub mod about_content;
 pub mod comparison_header;
 pub mod crate_card;
 pub mod crate_summary;

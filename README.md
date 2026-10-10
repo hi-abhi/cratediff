@@ -94,7 +94,7 @@ the application shell with HTTP 200.
 For the file-tree lifecycle browser regression, start `trunk serve`, then run:
 
 ```sh
-npx playwright install chromium
+npx playwright install chromium firefox
 npm run test:browser
 ```
 
