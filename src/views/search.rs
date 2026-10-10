@@ -1,6 +1,7 @@
 use crate::{
     components::{page_title::PageTitle, search_form::SearchForm, search_results::SearchResults},
     search::{fetch_search, search_url},
+    views::not_found::NotFound,
 };
 use leptos::prelude::*;
 use leptos_router::{
@@ -85,12 +86,12 @@ pub fn SearchPage() -> impl IntoView {
         }
     });
     view! {
+        <Show when=move || !query.get().is_empty() fallback=NotFound>
         <div class="search-page">
             <PageTitle/>
             <section class="hero" aria-labelledby="search-title">
-                <p class="eyebrow">"THE RUST CRATE ECOSYSTEM"</p>
-                <h1 id="search-title">"Find a crate."</h1>
-                <p class="intro">"Search crates.io by crate name or keyword, then compare its published releases."</p>
+                <h1 id="search-title">"Compare diffs for Rust crate versions"</h1>
+                <p class="intro">"Search by crate name or keyword, then compare its published releases."</p>
                 <SearchForm query=draft.into() on_input=on_input on_search=on_search id="crate-search"/>
                 <p class="search-note">"Live results from crates.io · Search updates as you type"</p>
             </section>
@@ -100,7 +101,7 @@ pub fn SearchPage() -> impl IntoView {
                         return view! { <div class="status" role="status">"Searching crates.io"</div> }.into_any();
                     }
                     match response {
-                        None => view! { <p class="empty">"Enter a crate name or keyword to search crates.io."</p> }.into_any(),
+                        None => ().into_any(),
                         Some(Ok(response)) => view! { <SearchResults query=requested_query page=requested_page response=response/> }.into_any(),
                         Some(Err(message)) => view! {
                             <div class="status error" role="alert">
@@ -112,5 +113,6 @@ pub fn SearchPage() -> impl IntoView {
                 })}
             </Suspense>
         </div>
+        </Show>
     }
 }

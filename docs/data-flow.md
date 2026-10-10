@@ -11,8 +11,8 @@ leaving these lists unchanged. Pressing Enter navigates to the registry search
 page, which has its own search form and submit button. The home form omits the
 submit button.
 
-[`SearchPage`](../src/views/search.rs) separates the editable input from the
-query in the URL:
+[`SearchPage`](../src/views/search.rs) provides its own search form and hides the
+header search. It separates the editable input from the query in the URL:
 
 1. Input updates the local draft immediately.
 2. A cancelable 500 ms timeout updates the query route and resets pagination.
@@ -26,7 +26,9 @@ query in the URL:
 5. [`SearchResults`](../src/components/search_results.rs) reuses `CrateCard`,
    reads `meta.total`, and builds Previous/Next links.
 
-An empty query makes no search request. Missing, invalid, or zero page numbers
+Bare `/search` and blank query URLs show the standard not-found page without
+making a search request. Clearing the search input returns home.
+Missing, invalid, or zero page numbers
 are treated as page 1. Page numbers and query text are preserved in shareable
 links. Pending input timeouts are canceled when the query changes through
 navigation or the component is disposed.

@@ -8,7 +8,14 @@ pub fn Header(comparison_mounts: ComparisonHeaderMount) -> impl IntoView {
     let (query, set_query) = signal(String::new());
     let navigate = use_navigate();
     let location = use_location();
-    let is_home = Memo::new(move |_| location.pathname.get() == "/");
+    let has_page_search = Memo::new(move |_| {
+        let path = location.pathname.get();
+        path == "/"
+            || path.strip_prefix("/search/").is_some_and(|query| {
+                !query.contains('/')
+                    && urlencoding::decode(query).is_ok_and(|query| !query.trim().is_empty())
+            })
+    });
     let on_search = Callback::new(move |event: leptos::ev::SubmitEvent| {
         event.prevent_default();
         let query = query.get().trim().to_owned();
@@ -18,7 +25,7 @@ pub fn Header(comparison_mounts: ComparisonHeaderMount) -> impl IntoView {
     });
     view! {
         <header class="navbar">
-            <nav class="nav-content" class:home-header=move || is_home.get() aria-label="Main navigation">
+            <nav class="nav-content" class:page-search-header=move || has_page_search.get() aria-label="Main navigation">
                 <div class="nav-left">
                     <a class="brand" href="/">
                         <img class="brand-logo" src="/logo.svg" alt="" width="36" height="36"/>
@@ -28,7 +35,7 @@ pub fn Header(comparison_mounts: ComparisonHeaderMount) -> impl IntoView {
                 </div>
                 <div class="nav-comparison">
                     <div class="comparison-header-slot" node_ref=comparison_mounts.versions/>
-                    <Show when=move || !is_home.get()>
+                    <Show when=move || !has_page_search.get()>
                         <form class="header-search" role="search" aria-label="Header search"
                             on:submit=move |event| on_search.run(event)>
                             <label class="sr-only" for="header-search">"Search for crates"</label>

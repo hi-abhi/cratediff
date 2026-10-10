@@ -46,7 +46,7 @@ button, a, input { -webkit-tap-highlight-color: transparent; }
 .comparison-header-slot, .comparison-header-slot > div { display: contents; }
 .header-crate { margin: 0; padding-left: 16px; border-left: 1px solid var(--border); max-width: 200px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; font-weight: 600; letter-spacing: 0; line-height: 1.5; }
 .nav-comparison { display: flex; flex: 1; align-items: center; justify-content: space-between; gap: 16px; min-width: 0; font-size: 14px; }
-.home-header .nav-comparison { display: none; }
+.page-search-header .nav-comparison { display: none; }
 .nav-tools { display: flex; align-items: center; gap: 16px; }
 .header-search { margin-left: auto; min-width: 0; }
 .header-search input { width: 150px; height: 34px; padding: 6px 10px; color: var(--text); background: var(--background); border: 1px solid var(--border); border-radius: 4px; }
@@ -56,7 +56,7 @@ button, a, input { -webkit-tap-highlight-color: transparent; }
 main { flex: 1; }
 .hero { max-width: 700px; margin: 70px auto 58px; text-align: center; }
 .home-page .hero { margin: 32px auto 28px; }
-.home-page h1 { margin-bottom: 20px; font-size: clamp(28px, 4vw, 34px); letter-spacing: -1px; }
+.home-page h1, .search-page h1 { margin-bottom: 20px; font-size: clamp(28px, 4vw, 34px); letter-spacing: -1px; }
 .eyebrow { margin: 0 0 18px; color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: 2px; }
 h1 { margin: 0; font-size: clamp(32px, 5vw, 46px); font-weight: 650; letter-spacing: -1.8px; line-height: 1.15; }
 .intro { margin: 18px 0 30px; font-size: 16px; line-height: 1.6; color: var(--muted); }
@@ -219,7 +219,7 @@ h1 { margin: 0; font-size: clamp(32px, 5vw, 46px); font-weight: 650; letter-spac
 
 @media (max-width: 950px) {
   .nav-content { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "identity tools" "comparison comparison"; gap: 8px; padding: 8px 12px; }
-  .nav-content.home-header { grid-template-areas: "identity tools"; }
+  .nav-content.page-search-header { grid-template-areas: "identity tools"; }
   .nav-left { grid-area: identity; gap: 8px; }
   .brand { gap: 8px; font-size: 18px; white-space: nowrap; }
   .brand-logo { width: 32px; height: 32px; }

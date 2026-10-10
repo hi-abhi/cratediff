@@ -36,7 +36,7 @@ async function checkCompactHeader(page) {
   if (frame.search) {
     assert.ok(frame.search.top >= frame.settings.bottom, 'search stays below the logo row');
   } else {
-    assert.ok(frame.header.height <= 57, 'home header stays on one row without search');
+    assert.ok(frame.header.height <= 57, 'pages with their own search keep the header on one row');
   }
   for (const control of [frame.brand, frame.settings, frame.search, frame.crate, frame.old, frame.next].filter(Boolean)) {
     assert.ok(control.left >= 0 && control.right <= frame.width, 'header controls stay inside the viewport');
@@ -103,17 +103,31 @@ test('home keeps discovery lists intact and searches the registry only on Enter'
     await search.press('Enter');
     await page.waitForURL('**/search/not-listed');
     await page.getByRole('heading', { name: 'Results for “not-listed”', exact: true }).waitFor();
-    assert.equal(await page.locator('header form[role="search"]').count(), 1,
-      'header search returns when leaving home');
+    assert.equal(await page.locator('header form[role="search"]').count(), 0,
+      'search results use their own search form instead of header search');
+    assert.equal(await page.getByRole('searchbox').count(), 1);
+    for (const width of [950, 390, 320]) {
+      await page.setViewportSize({ width, height: 844 });
+      await checkCompactHeader(page);
+    }
     assert.equal(await page.locator('.search-results .card h3').innerText(), 'not-listed');
     assert.equal(await page.getByRole('link', { name: 'not-listed', exact: true }).getAttribute('href'), '/crate/not-listed');
     assert.deepEqual(searches, ['not-listed']);
-    await page.getByRole('link', { name: 'Crate Diff', exact: true }).click();
+    await page.locator('#crate-search').fill('   ');
+    await page.waitForURL(url => url.pathname === '/');
     await page.locator('.summary .card').first().waitFor();
     assert.equal(await page.locator('.summary').innerText(), discoveryLists);
     assert.equal(await search.inputValue(), '');
     assert.equal(await page.locator('header form[role="search"]').count(), 0,
       'header search disappears when returning home');
+    for (const path of ['/search', '/search/', '/search/%20%20']) {
+      await page.goto(`${base}${path}`);
+      await page.getByRole('heading', { name: 'Page Not Found', exact: true }).waitFor();
+      assert.equal(new URL(page.url()).pathname, path, 'empty search routes do not redirect');
+      assert.equal(await page.locator('.search-page, .home-page').count(), 0,
+        'empty search routes show the standard not-found page');
+    }
+    assert.deepEqual(searches, ['not-listed'], 'empty searches do not query the registry');
     assert.deepEqual(errors, []);
   } finally {
     await browser.close();
@@ -544,10 +558,13 @@ test('tree stays in its sidebar through downloads, cached versions and navigatio
     await headerSearch.press('Enter');
     await page.waitForURL('**/search/another-title');
     await page.getByRole('heading', { name: 'Results for “another-title”', exact: true }).waitFor();
+    assert.equal(await page.locator('header form[role="search"]').count(), 0);
     assert.equal(await page.title(), homeTitle);
     assert.equal(crateLookups, 0, 'even an exact match opens results before fetching a comparison');
     await page.getByRole('link', { name: 'another-title', exact: true }).click();
     await page.waitForURL('**/crate/another-title');
+    assert.equal(await page.locator('header form[role="search"]').count(), 1,
+      'header search returns when leaving the results page');
     await page.waitForFunction(() => document.title === 'another-title - Crate Diff');
     await page.route('https://crates.io/api/v1/summary', route => route.fulfill({
       json: { most_downloaded: [], just_updated: [] },

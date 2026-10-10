@@ -26,7 +26,7 @@ pub fn App() -> impl IntoView {
                         <Route path=path!("/") view=Home/>
                         <Route path=path!("/debug") view=DebugPage/>
                         <Route path=path!("/404") view=NotFound/>
-                        <Route path=path!("/search/*query") view=SearchPage/>
+                        <Route path=path!("/search/:query") view=SearchPage/>
                         <Route path=path!("/crate/:krate") view=DiffPage/>
                         <Route path=path!("/crate/:krate/:old/:new/*file") view=DiffPage/>
                     </Routes>

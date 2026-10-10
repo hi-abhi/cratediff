@@ -18,7 +18,7 @@ pub struct SearchMeta {
 pub fn search_url(query: &str, page: u64) -> String {
     let query = query.trim();
     if query.is_empty() {
-        return "/search".to_owned();
+        return "/".to_owned();
     }
     let url = format!("/search/{}", urlencoding::encode(query));
     if page > 1 {
@@ -67,7 +67,7 @@ mod tests {
             "/search/rust%20%2F%20async%20%2B%20caf%C3%A9%3F%20%26"
         );
         assert_eq!(search_url("serde", 2), "/search/serde?page=2");
-        assert_eq!(search_url("   ", 4), "/search");
+        assert_eq!(search_url("   ", 4), "/");
         assert_eq!(
             search_api_url("a&b", 0),
             "https://crates.io/api/v1/crates?q=a%26b&per_page=20&page=1"

@@ -62,7 +62,7 @@ declared before the crate routes.
 | `/` | `Home`: summary lists and registry search on Enter |
 | `/debug` | `DebugPage`: cache inventory/size and localStorage diagnostics, linked from About |
 | `/404`, or an unmatched route | `NotFound` |
-| `/search/*query` | `SearchPage`: an empty query at `/search`, or an encoded search term; optional `?page=N` |
+| `/search/:query` | `SearchPage`: an encoded, nonblank search term; optional `?page=N` |
 | `/crate/:krate` | `DiffPage`: resolves previous/latest and redirects to concrete version strings |
 | `/crate/:krate/:old/:new/*file` | `DiffPage`: resolves the comparison and optionally selects a file |
 
