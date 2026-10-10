@@ -87,7 +87,6 @@ deserialization. Versions are parsed once for sorting and ordered by descending
 | `latest` | First entry in the ordered list |
 | `previous` | Second entry, or the first when only one entry exists |
 | Exact version string | Exact string match, including build metadata |
-| Semver requirement such as `^1` | First matching entry in the ordered list |
 
 This makes `1.10.0` precede `1.9.0`, a release precede its own prereleases, and
 `rc.10` precede `rc.2`. Build metadata does not affect precedence; equal
@@ -97,8 +96,7 @@ remain at the end of the list.
 Yanked releases stay selectable and carry a label in the dropdowns. Resolution
 does not exclude them or impose a separate stable-release policy.
 
-A missing exact semantic version produces a not-found error rather than
-silently being interpreted as a caret requirement.
+A missing version or unsupported version expression produces a not-found error.
 
 ## Archive processing
 

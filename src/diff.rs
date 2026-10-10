@@ -1,6 +1,6 @@
 use flate2::read::GzDecoder;
 use gloo_net::http::Request;
-use semver::{Version, VersionReq};
+use semver::Version;
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use similar::{ChangeTag, TextDiff};
@@ -72,17 +72,7 @@ impl CrateResponse {
             _ => self
                 .versions
                 .iter()
-                .find(|version| version.num == requested)
-                .or_else(|| {
-                    // An exact version must not silently resolve as a caret requirement.
-                    if Version::parse(requested).is_ok() {
-                        return None;
-                    }
-                    let requirement = VersionReq::parse(requested).ok()?;
-                    self.versions.iter().find(|version| {
-                        Version::parse(&version.num).is_ok_and(|num| requirement.matches(&num))
-                    })
-                }),
+                .find(|version| version.num == requested),
         };
         version.cloned().ok_or_else(|| {
             LoadError::NotFound(format!(
@@ -575,12 +565,17 @@ mod tests {
     }
 
     #[test]
-    fn resolve_named_exact_and_requirement_versions() {
+    fn resolve_named_and_exact_versions() {
         let mut metadata = metadata();
         assert_eq!(metadata.resolve("latest").unwrap().num, "2.0.0");
         assert_eq!(metadata.resolve("previous").unwrap().num, "1.2.0");
         assert!(metadata.resolve("1.2.0").unwrap().yanked);
-        assert_eq!(metadata.resolve("^1").unwrap().num, "1.2.0");
+        for range in ["^1", "~1.2", "1.*", ">=1.0.0", "1", "=1.2.0"] {
+            assert!(matches!(
+                metadata.resolve(range),
+                Err(LoadError::NotFound(_))
+            ));
+        }
         assert!(matches!(
             metadata.resolve("1.1.0"),
             Err(LoadError::NotFound(_))
@@ -643,7 +638,7 @@ mod tests {
         );
         assert_eq!(metadata.resolve("latest").unwrap().num, "10.0.0");
         assert_eq!(metadata.resolve("previous").unwrap().num, "2.0.0");
-        assert_eq!(metadata.resolve("^1").unwrap().num, "1.10.1");
+        assert_eq!(metadata.resolve("2.0.0+z").unwrap().num, "2.0.0+z");
         assert!(metadata.resolve("1.10.0").unwrap().yanked);
     }
 
@@ -652,8 +647,8 @@ mod tests {
         assert_eq!(crate_url("demo"), "/crate/demo");
         assert_eq!(crate_url("a crate"), "/crate/a%20crate");
         assert_eq!(
-            comparison_url("demo", "^1", "latest", "src/a b.rs"),
-            "/crate/demo/%5E1/latest/src/a%20b.rs"
+            comparison_url("demo", "1.0.0+build.1", "latest", "src/a b.rs"),
+            "/crate/demo/1.0.0%2Bbuild.1/latest/src/a%20b.rs"
         );
         assert_eq!(
             comparison_url("demo", "1.0.0", "2.0.0", ""),
