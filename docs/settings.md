@@ -31,7 +31,7 @@ document head before the workspace renders. Storage access is guarded:
 unsupported values fall back to defaults, and blocked storage leaves the
 settings functional for the page session. Storage events synchronize tabs.
 Reset removes both keys and restores Auto, 12 px, Full screen layout,
-Pierre Light/Pierre Dark, and App default.
+GitHub Light Default/GitHub Dark Default, and App default.
 
 ## Appearance and schemes
 

@@ -25,6 +25,7 @@ test('stored preferences recover from unsupported values and preserve valid mode
   }
   assert.deepEqual(normalizeSettings({ mode: 'dark', fontSize: 18, codeWidth: 'standard', compactFolders: true, lightTheme: 'pierre-light', darkTheme: 'pierre-dark' }), {
     ...DEFAULT_SETTINGS, mode: 'dark', fontSize: 18, codeWidth: 'standard',
+    lightTheme: 'pierre-light', darkTheme: 'pierre-dark',
   });
   assert.deepEqual(normalizeSettings({ codeWidth: 'fullscreen' }), { ...DEFAULT_SETTINGS, codeWidth: 'fullscreen' });
   assert.deepEqual(normalizeSettings({ codeWidth: 'standard' }), { ...DEFAULT_SETTINGS, codeWidth: 'standard' });

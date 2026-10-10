@@ -1,6 +1,6 @@
 import { SHIKI_THEMES } from './shiki-themes.js';
 
-// Pierre remains the default; bundled Shiki themes follow in label order.
+// Pierre themes remain available; bundled Shiki themes follow in label order.
 // The settings UI reads these groups, and the renderer uses their IDs directly.
 export const DIFF_THEMES = {
   light: [{ id: 'pierre-light', label: 'Pierre Light' }, ...SHIKI_THEMES.light],
@@ -11,8 +11,8 @@ export const DEFAULT_SETTINGS = {
   mode: 'auto',
   fontSize: 12,
   codeWidth: 'fullscreen',
-  lightTheme: 'pierre-light',
-  darkTheme: 'pierre-dark',
+  lightTheme: 'github-light-default',
+  darkTheme: 'github-dark-default',
 };
 
 export function normalizeSettings(value) {

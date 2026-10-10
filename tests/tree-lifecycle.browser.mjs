@@ -893,10 +893,10 @@ test('all diff schemes render, follow the resolved mode, and preserve both prefe
     await checkRenderedBackground('light', 'one-light');
     await page.getByRole('button', { name: 'Reset to defaults', exact: true }).click();
     await checkOptions('light');
-    assert.equal(await selector.inputValue(), 'pierre-light');
+    assert.equal(await selector.inputValue(), 'github-light-default');
     const reset = await page.evaluate(() => window.CrateSettings.snapshot());
-    assert.equal(reset.lightTheme, 'pierre-light');
-    assert.equal(reset.darkTheme, 'pierre-dark');
+    assert.equal(reset.lightTheme, 'github-light-default');
+    assert.equal(reset.darkTheme, 'github-dark-default');
     assert.equal(await saved(), null);
     assert.deepEqual(errors, []);
   } finally {
