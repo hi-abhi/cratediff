@@ -2,6 +2,7 @@ mod app;
 mod components;
 mod data;
 mod diff;
+mod review;
 mod search;
 mod settings;
 mod views;

@@ -22,6 +22,7 @@ The comparison page uses these components:
 | [`ComparisonHeader`](../src/components/comparison_header.rs) | Crate identity and resolved version controls in the shared header |
 | [`DiffWorkspace`](../src/components/diff_workspace.rs) | File change statistics, selected-file memo, and sidebar/panel composition |
 | [`FileTree`](../src/components/file_tree.rs) and [`FilePanel`](../src/components/diff_view.rs) | Local filters/display options, renderer hosts, browser instances, and cleanup |
+| [`ChangeReview`](../src/components/change_review.rs) | Directory scope, review statistics, and one virtualized multi-file diff pane |
 | [`SidebarToggle`](../src/components/sidebar_toggle.rs) | Accessible hide/show icon shared by the Files toolbar and collapsed strip |
 
 `ComparisonHeader` uses Leptos portals to mount the crate identity and version
@@ -59,7 +60,7 @@ Its counts cover all compared files and remain unchanged by file filters.
 Hiding the sidebar also hides the summary; leaving the comparison disposes it.
 The app has no page footer.
 
-Version dropdown changes retain the selected file in the comparison
+Version dropdown changes retain the selected file and review scope in the comparison
 URL. Selecting a file updates the URL through the tree callback. The sidebar
 stays mounted during file navigation; the selected file panel is rebuilt with
 its own expanded-context state. Split/Stacked layout uses the persisted shared
@@ -74,6 +75,61 @@ Crate cards use `crate_url` for `/crate/{name}`, and comparisons use
 resolved-version redirects, version controls, and file selection under the
 same route prefix.
 
+### Reviewing a whole crate or directory
+
+The shared toolbar's **Show all changes** toggle opens the existing comparison with
+`?view=changes`. Only added, removed, or modified files are included; changes
+are shown in the sidebar's directory-first, natural filename order with compact
+context around each hunk. [`js/file-order.js`](../js/file-order.js) uses Pierre's
+`prepareFileTreeInput` for both surfaces, so numbered filenames and nested
+directories have the same order. Collapsing or filtering the sidebar does not
+hide review items or change their order. Selecting a folder in the sidebar
+adds `&scope=src%2F`, for example, to include all descendants of `src/`
+without matching a sibling such as `src-extra/`. [`src/review.rs`](../src/review.rs)
+owns scope normalization, filtering, and URL construction.
+Its `use_review_scope` hook and `view_url` helper share mode handling across
+the sidebar, toolbar, version controls, and resolved-version redirects.
+The mode and directory survive reloads and version changes without introducing
+reserved filenames into the wildcard file route.
+
+In review mode, selecting a folder in the tree changes the scope. Selecting a
+changed file jumps to its diff in the same scroll pane; a file outside the
+current scope widens the review to the whole crate. Selecting an unchanged
+file opens the single-file viewer. Turning **Show all changes** off returns to
+the selected file (or the default file when no file is selected).
+The tree's search and changed-only filters affect navigation, not the review.
+[`src/components/diff_toolbar.rs`](../src/components/diff_toolbar.rs) owns the
+toolbar used by both viewers, with the full-diff toggle on the left and
+Show all lines and Split/Stacked controls on the right.
+The toolbar shows totals for the review scope; the sidebar summary continues
+to cover the entire crate.
+
+The review uses Pierre `CodeView` with stable path IDs, sticky file headers,
+full-width file header buttons, and item virtualization. Clicking anywhere on
+a file header, or pressing Enter or Space when it is focused, toggles collapse.
+The header has a down chevron when open and a right chevron when collapsed,
+followed by Pierre's original added, deleted, or modified status icon.
+These headers share the single-file heading's 36px height and padding,
+with the same height supplied to CodeView's
+virtualization metrics to keep scrolling and file jumps aligned.
+An 8px gap below each header matches the single-file viewer's code padding;
+both the shadow CSS and CodeView's item metrics account for that gap.
+The selected **Show all changes** toggle has a contrasting fill and checkmark;
+its tooltip describes the next action.
+The workspace filters changed files once and shares that memo with the
+summary and review viewer. Scope changes replace the renderer; file jumps
+keep it mounted. Mounting, control updates, and file jumps use separate effects,
+so changing a control does not scroll back to the selected file.
+Split/Stacked uses the same persisted
+preference as the single-file viewer. Show all lines is shared by both viewers
+for the current comparison. Binary and non-UTF-8 changes show a byte-size notice;
+empty added or removed files retain a header and an empty-file notice.
+No extra archive downloads are needed: the review reads the compared versions'
+existing `Arc<Files>` maps. Rendering is virtualized, although diff parsing and
+source serialization still cover all changed files in the selected scope.
+The single-file and review renderers share their common Pierre options and
+absent-file conversion in `js/pierre.js`.
+
 ## Rust–JavaScript bridge
 
 [`src/components/pierre.rs`](../src/components/pierre.rs) declares
@@ -87,6 +143,9 @@ same route prefix.
 | `collapseTree` | Instance; collapses all directory handles while retaining the selected diff |
 | `mountDiff` | DOM host, filename, optional old/new text, identical flag; creates `File` or `FileDiff` |
 | `updateDiff` | Instance, split-mode flag, all-lines flag; updates options and renders |
+| `mountReview` | DOM host and JSON changed-file sources; creates a virtualized Pierre `CodeView` |
+| `updateReview` | Instance, split-mode flag, all-lines flag; updates list options |
+| `scrollReview` | Instance and file path; expands and scrolls to the file's item |
 | `cleanUp` | Instance; releases the library renderer |
 
 Each wrapper uses a `NodeRef` to wait for its host before constructing a

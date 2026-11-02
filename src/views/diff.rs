@@ -3,7 +3,8 @@ use crate::{
         comparison_header::ComparisonHeader, diff_workspace::DiffWorkspace, page_title::PageTitle,
         problem::Problem,
     },
-    diff::{Comparison, CrateResponse, LoadError, comparison_url, fetch_crate, fetch_source},
+    diff::{Comparison, CrateResponse, LoadError, fetch_crate, fetch_source},
+    review::{use_review_scope, view_url},
 };
 use leptos::prelude::*;
 use leptos_router::{NavigateOptions, components::Redirect, hooks::use_params_map};
@@ -11,6 +12,7 @@ use leptos_router::{NavigateOptions, components::Redirect, hooks::use_params_map
 #[component]
 pub fn DiffPage() -> impl IntoView {
     let params = use_params_map();
+    let scope = use_review_scope();
     let name = Memo::new(move |_| params.read().get("krate").unwrap_or_default());
     let (retry, set_retry) = signal(0_u64);
     let metadata = LocalResource::new(move || {
@@ -26,7 +28,7 @@ pub fn DiffPage() -> impl IntoView {
                     Ok(metadata) if params.read_untracked().get("old").is_none() => {
                         match (metadata.resolve("previous"), metadata.resolve("latest")) {
                             (Ok(old), Ok(new)) => view! {
-                                <Redirect path=comparison_url(&metadata.krate.id, &old.num, &new.num, "")
+                                <Redirect path=view_url(&metadata.krate.id, &old.num, &new.num, "", scope.get_untracked().as_deref())
                                     options=NavigateOptions { replace: true, ..Default::default() }/>
                             }.into_any(),
                             (Err(error), _) | (_, Err(error)) => view! { <Problem error=error/> }.into_any(),

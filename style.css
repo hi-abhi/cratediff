@@ -148,9 +148,16 @@ h1 { margin: 0; font-size: clamp(32px, 5vw, 46px); font-weight: 650; letter-spac
   --trees-status-deleted-override: light-dark(#b44040, #f09d9d);
   --trees-status-modified-override: light-dark(#327e9e, #75c7e5);
 }
-.file-panel { min-width: 0; min-height: 0; overflow: hidden; }
-.diff-view { display: flex; flex-direction: column; height: 100%; min-height: 0; background: var(--surface); overflow: hidden; }
-.diff-heading { flex-shrink: 0; padding: 10px 12px; background: var(--background); border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.file-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
+.diff-view { display: flex; flex: 1; flex-direction: column; min-height: 0; background: var(--surface); overflow: hidden; }
+.diff-toolbar { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--background); }
+.diff-toolbar-start { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; min-width: 0; }
+.full-diff-toggle { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; height: 32px; padding: 5px 9px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--text); font-size: 12px; font-weight: 600; cursor: pointer; }
+.full-diff-toggle svg { flex-shrink: 0; width: 16px; height: 16px; }
+.full-diff-toggle:hover { background: var(--tint); }
+.full-diff-toggle[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--brand-icon-text); }
+.diff-heading, .review-file-collapse { width: 100%; min-height: 36px; padding: 8px 12px; border-bottom: 1px solid var(--border); line-height: 19px; }
+.diff-heading { flex-shrink: 0; background: var(--background); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
 .diff-heading h2 { font-family: var(--font-mono); font-size: 13px; font-weight: 500; margin: 0; overflow-wrap: anywhere; min-width: 0; }
 .diff-options { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .diff-context-toggle, .diff-layout-toggle { display: grid; place-items: center; flex-shrink: 0; width: 32px; height: 32px; padding: 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--muted); cursor: pointer; }
@@ -165,6 +172,18 @@ h1 { margin: 0; font-size: clamp(32px, 5vw, 46px); font-weight: 650; letter-spac
   --diffs-line-height: var(--diff-line-height);
   --diffs-font-family: var(--font-mono);
 }
+.pierre-review-host { flex: 1; min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.pierre-review-host diffs-container { display: block; --diffs-font-size: var(--diff-font-size); --diffs-line-height: var(--diff-line-height); --diffs-font-family: var(--font-mono); }
+.review-totals, .review-file-stats { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.review-file-collapse { display: flex; align-items: center; gap: 8px; height: 36px; border-top: 0; border-inline: 0; border-radius: 0; background: var(--background); color: var(--text); cursor: pointer; text-align: left; font-family: var(--font-mono); font-size: 13px; }
+.review-file-collapse:hover { background: var(--tint); }
+.review-file-collapse svg { flex-shrink: 0; width: 16px; height: 16px; }
+.review-file-chevron { color: var(--muted); }
+.review-file-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.review-file-stats { flex-shrink: 0; }
+.review-empty { padding: 32px 16px; color: var(--muted); text-align: center; font-size: 13px; }
+.review-empty h3 { color: var(--text); font-size: 15px; margin: 0 0 8px; }
+.review-empty p { margin: 0; }
 .problem-actions { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; }
 .settings-trigger, .settings-close { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--text); cursor: pointer; }
 .settings-trigger:hover, .settings-close:hover { background: var(--tint); }

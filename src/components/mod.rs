@@ -1,10 +1,12 @@
 pub mod about_content;
+pub mod change_review;
 pub mod comparison_header;
 pub mod crate_card;
 pub mod crate_summary;
 pub mod diff_context_toggle;
 pub mod diff_layout_toggle;
 pub mod diff_scheme_select;
+pub mod diff_toolbar;
 pub mod diff_view;
 pub mod diff_workspace;
 pub mod file_tree;

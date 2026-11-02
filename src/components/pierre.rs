@@ -30,6 +30,15 @@ extern "C" {
     #[wasm_bindgen(js_namespace = Pierre, js_name = updateDiff)]
     pub fn update_diff(instance: &JsValue, split: bool, all_lines: bool);
 
+    #[wasm_bindgen(js_namespace = Pierre, js_name = mountReview, catch)]
+    pub fn mount_review(host: &JsValue, files: &str) -> Result<JsValue, JsValue>;
+
+    #[wasm_bindgen(js_namespace = Pierre, js_name = updateReview)]
+    pub fn update_review(instance: &JsValue, split: bool, all_lines: bool);
+
+    #[wasm_bindgen(js_namespace = Pierre, js_name = scrollReview)]
+    pub fn scroll_review(instance: &JsValue, path: &str);
+
     #[wasm_bindgen(js_namespace = Pierre, js_name = cleanUp)]
     fn clean_up(instance: &JsValue);
 }

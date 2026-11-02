@@ -1,18 +1,19 @@
-use super::{
-    diff_context_toggle::DiffContextToggle,
-    diff_layout_toggle::DiffLayoutToggle,
-    pierre::{Renderer, mount_diff, update_diff},
-};
+use super::pierre::{Renderer, mount_diff, update_diff};
 use crate::{
     components::problem::Problem,
     diff::{Files, LoadError, text},
-    settings::{set_setting, use_settings},
 };
 use leptos::{html, prelude::*};
 use std::sync::Arc;
 
 #[component]
-pub fn FilePanel(path: String, old_files: Arc<Files>, new_files: Arc<Files>) -> impl IntoView {
+pub fn FilePanel(
+    path: String,
+    old_files: Arc<Files>,
+    new_files: Arc<Files>,
+    all_lines: ReadSignal<bool>,
+    split: Memo<bool>,
+) -> impl IntoView {
     let old = old_files.get(&path);
     let new = new_files.get(&path);
     if old.is_none() && new.is_none() {
@@ -39,9 +40,6 @@ pub fn FilePanel(path: String, old_files: Arc<Files>, new_files: Arc<Files>) -> 
     let renderer = StoredValue::new_local(None::<Renderer>);
     let host = NodeRef::<html::Div>::new();
     let (error, set_error) = signal(None::<String>);
-    let (all_lines, set_all_lines) = signal(identical);
-    let settings = use_settings();
-    let split = Memo::new(move |_| settings.with(|settings| settings.diff_layout == "split"));
     Effect::new(move |_| {
         let Some(host) = host.get() else { return };
         let split = split.get();
@@ -70,12 +68,6 @@ pub fn FilePanel(path: String, old_files: Arc<Files>, new_files: Arc<Files>) -> 
         <section class="diff-view" aria-label="File comparison">
             <div class="diff-heading">
                 <h2>{path}</h2>
-                <div class="diff-options">
-                    <DiffContextToggle expanded=all_lines
-                        on_toggle=Callback::new(move |()| set_all_lines.update(|value| *value = !*value))/>
-                    <DiffLayoutToggle split=split
-                        on_select=Callback::new(move |value| set_setting("diffLayout", if value { "split" } else { "stacked" }))/>
-                </div>
             </div>
             {identical.then(|| view! { <p class="file-notice">"This file is unchanged."</p> })}
             {empty.then(|| view! { <p class="file-notice">"This file is empty."</p> })}

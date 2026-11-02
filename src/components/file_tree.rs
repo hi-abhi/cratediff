@@ -2,7 +2,8 @@ use super::{
     pierre::{Renderer, collapse_tree, mount_tree, update_tree},
     sidebar_toggle::SidebarToggle,
 };
-use crate::diff::{FileChange, FileStatus, comparison_url};
+use crate::diff::{FileChange, FileStatus};
+use crate::review::{use_review_scope, view_url};
 use leptos::{html, prelude::*};
 use leptos_router::hooks::use_navigate;
 use wasm_bindgen::{JsCast, closure::Closure};
@@ -21,12 +22,35 @@ pub fn FileTree(
 ) -> impl IntoView {
     let files_json = serde_json::to_string(&files).expect("file changes serialize");
     let files_json = StoredValue::new(files_json);
+    let changed_paths = files
+        .iter()
+        .filter(|file| file.status != FileStatus::Unchanged)
+        .map(|file| file.path.clone())
+        .collect::<std::collections::BTreeSet<_>>();
+    let review_scope = use_review_scope();
+    let identity = StoredValue::new((name, old, new));
     let navigate = use_navigate();
     let callback = Closure::<dyn FnMut(String)>::new(move |path: String| {
-        navigate(
-            &comparison_url(&name, &old, &new, &path),
-            Default::default(),
-        );
+        let scope = review_scope.get_untracked();
+        if path.ends_with('/') && scope.is_none() {
+            return;
+        }
+        let url = identity.with_value(|(name, old, new)| {
+            if path.ends_with('/') {
+                view_url(name, old, new, "", Some(&path))
+            } else if let Some(scope) = scope.filter(|_| changed_paths.contains(&path)) {
+                view_url(
+                    name,
+                    old,
+                    new,
+                    &path,
+                    Some(if path.starts_with(&scope) { &scope } else { "" }),
+                )
+            } else {
+                view_url(name, old, new, &path, None)
+            }
+        });
+        navigate(&url, Default::default());
     });
     let callback = StoredValue::new_local(Some(callback));
     let renderer = StoredValue::new_local(None::<Renderer>);
