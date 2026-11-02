@@ -172,6 +172,63 @@ function archive(version, large = false) {
   return gzipSync(Buffer.concat([...chunks, Buffer.alloc(1024)]));
 }
 
+test('diff layout persists across files, reloads, new pages and cross-tab settings changes', { timeout: 30000 }, async () => {
+  const archives = new Map(['1.0.0', '1.0.1', '1.0.2'].map(version => [version, archive(version)]));
+  const versions = [...archives].map(([num, bytes]) => ({
+    num, checksum: createHash('sha256').update(bytes).digest('hex'), yanked: false,
+  }));
+  const browser = await chromium.launch();
+  try {
+    const context = await browser.newContext();
+    await context.route(`https://crates.io/api/v1/crates/${name}`, route => route.fulfill({
+      json: { crate: { id: name, max_version: '1.0.2', downloads: 0 }, versions },
+      headers: { 'access-control-allow-origin': '*' },
+    }));
+    await context.route(`https://static.crates.io/crates/${name}/*`, route => {
+      const version = route.request().url().match(/-(\d+\.\d+\.\d+)\.crate$/)[1];
+      return route.fulfill({ body: archives.get(version), contentType: 'application/octet-stream',
+        headers: { 'access-control-allow-origin': '*' } });
+    });
+    const page = await context.newPage();
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    const toggle = page.getByRole('button', { name: 'Split view', exact: true });
+    async function layout(page, split) {
+      await page.locator(`.pierre-diff-host [data-diff-type="${split ? 'split' : 'single'}"]`).waitFor();
+      assert.equal(await page.getByRole('button', { name: 'Split view', exact: true }).getAttribute('aria-pressed'), String(split));
+    }
+    await page.goto(`${base}/crate/${name}/1.0.0/1.0.1/src/lib.rs`);
+    await layout(page, false);
+    await toggle.click();
+    await layout(page, true);
+    assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('crate-diff.settings')).diffLayout), 'split');
+    await page.getByRole('treeitem', { name: 'module.rs', exact: true }).click();
+    await page.waitForURL('**/src/nested/deep/module.rs');
+    await layout(page, true);
+    await page.reload();
+    await layout(page, true);
+    const other = await context.newPage();
+    other.on('pageerror', error => errors.push(error.message));
+    await other.goto(`${base}/crate/${name}/1.0.0/1.0.2/Cargo.toml`);
+    await layout(other, true);
+    await other.getByRole('button', { name: 'Split view', exact: true }).click();
+    await layout(other, false);
+    await layout(page, false);
+    await other.reload();
+    await layout(other, false);
+    await toggle.click();
+    await layout(page, true);
+    await layout(other, true);
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await page.getByRole('button', { name: 'Reset to defaults', exact: true }).click();
+    await page.getByRole('button', { name: 'Done', exact: true }).click();
+    await layout(page, false);
+    await layout(other, false);
+    assert.equal(await page.evaluate(() => localStorage.getItem('crate-diff.settings')), null);
+    assert.deepEqual(errors, []);
+  } finally { await browser.close(); }
+});
+
 test('browse links redirect to a full source viewer and download each release once', { timeout: 30000 }, async () => {
   const version = '1.0.2+build.1';
   const archives = new Map([

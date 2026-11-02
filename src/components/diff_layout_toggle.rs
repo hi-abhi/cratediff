@@ -1,7 +1,10 @@
 use leptos::prelude::*;
 
 #[component]
-pub fn DiffLayoutToggle(split: ReadSignal<bool>, on_select: Callback<bool>) -> impl IntoView {
+pub fn DiffLayoutToggle(
+    #[prop(into)] split: Signal<bool>,
+    on_select: Callback<bool>,
+) -> impl IntoView {
     view! {
         <button class="diff-layout-toggle" type="button" aria-label="Split view"
             aria-pressed=move || if split.get() { "true" } else { "false" }

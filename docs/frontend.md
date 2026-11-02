@@ -62,7 +62,8 @@ The app has no page footer.
 Version dropdown changes retain the selected file in the comparison
 URL. Selecting a file updates the URL through the tree callback. The sidebar
 stays mounted during file navigation; the selected file panel is rebuilt with
-its own display state.
+its own expanded-context state. Split/Stacked layout uses the persisted shared
+display preference.
 Hiding the sidebar keeps its tree mounted and preserves folders and filters.
 The workspace gives the recovered space to the diff, leaving a slim strip with
 the show icon. Keyboard focus follows the toggle when hiding or showing.

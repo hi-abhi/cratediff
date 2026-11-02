@@ -29,6 +29,10 @@ test('stored preferences recover from unsupported values and preserve valid mode
   });
   assert.deepEqual(normalizeSettings({ codeWidth: 'fullscreen' }), { ...DEFAULT_SETTINGS, codeWidth: 'fullscreen' });
   assert.deepEqual(normalizeSettings({ codeWidth: 'standard' }), { ...DEFAULT_SETTINGS, codeWidth: 'standard' });
+  assert.equal(normalizeSettings({ diffLayout: 'split' }).diffLayout, 'split');
+  assert.equal(normalizeSettings({ diffLayout: 'stacked' }).diffLayout, 'stacked');
+  assert.equal(normalizeSettings({ diffLayout: 'invalid' }).diffLayout, 'stacked');
+  assert.equal(normalizeSettings({ mode: 'dark' }).diffLayout, 'stacked', 'older preferences keep the stacked default');
   assert.deepEqual(normalizeSettings({ mode: 'dark', fontSize: 18, codeWidth: 'wide', lightTheme: 'github-light', darkTheme: 'dracula' }), {
     ...DEFAULT_SETTINGS, mode: 'dark', fontSize: 18, lightTheme: 'github-light', darkTheme: 'dracula',
   }, 'retired Wide layouts become Full screen without losing other preferences');

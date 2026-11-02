@@ -75,10 +75,11 @@ The header's Settings button opens a shared dialog with Settings and About tabs.
 About contains project information and a Debug link to `/debug` within the app.
 
 Search query/page and comparison crate/version/file selections are URL state.
-Filters, changed-files-only, split/unified mode, expanded context, and retry
+Filters, changed-files-only, expanded context, and retry
 counters are local component state. Local state survives only while its owning
 component remains mounted. Selecting a different file creates a new diff panel;
-the sidebar filters remain in the existing workspace.
+the sidebar filters remain in the existing workspace. Split/Stacked layout is a
+shared display preference saved across files and reloads.
 Display preferences are shared across routes and persisted across reloads.
 
 ## Current execution model

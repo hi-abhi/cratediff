@@ -18,12 +18,12 @@ through `aria-pressed`. Select menus keep their arrows inset from the edge.
 
 [`js/settings.js`](../js/settings.js) owns the shared store and exposes
 `window.CrateSettings`. [`src/settings.rs`](../src/settings.rs) defines Rust
-bindings and snapshot types. Its `use_settings` helper subscribes the menu
+bindings and snapshot types. Its `use_settings` helper subscribes the menu and file views
 to JSON snapshots, and unsubscribes before releasing its Rust callback.
 
 | Storage key | Value |
 | --- | --- |
-| `crate-diff.settings` | JSON with `mode`, `fontSize`, `codeWidth`, `lightTheme`, and `darkTheme` |
+| `crate-diff.settings` | JSON with `mode`, `fontSize`, `codeWidth`, `diffLayout`, `lightTheme`, and `darkTheme` |
 | `font-mono` | Font label; absent for App default |
 
 A small synchronous `assets/settings-<hash>.js` bundle applies preferences in the
@@ -31,7 +31,15 @@ document head before the workspace renders. Storage access is guarded:
 unsupported values fall back to defaults, and blocked storage leaves the
 settings functional for the page session. Storage events synchronize tabs.
 Reset removes both keys and restores Auto, 12 px, Full screen layout,
-GitHub Light Default/GitHub Dark Default, and App default.
+Stacked diffs, GitHub Light Default/GitHub Dark Default, and App default.
+
+## Diff layout
+
+The file header's Split/Stacked toggle saves `diffLayout` (`split` or `stacked`)
+in the shared settings JSON. File views read the preference reactively, so it
+survives file switches, version changes, new pages, and reloads; storage events
+also synchronize open tabs. Missing or invalid values use Stacked. Reset to
+defaults restores Stacked. The expanded-context toggle remains local to each file.
 
 ## Appearance and schemes
 

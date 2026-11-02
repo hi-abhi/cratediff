@@ -11,6 +11,7 @@ export const DEFAULT_SETTINGS = {
   mode: 'auto',
   fontSize: 12,
   codeWidth: 'fullscreen',
+  diffLayout: 'stacked',
   lightTheme: 'github-light-default',
   darkTheme: 'github-dark-default',
 };
@@ -21,6 +22,7 @@ export function normalizeSettings(value) {
     mode: ['light', 'dark', 'auto'].includes(raw.mode) ? raw.mode : DEFAULT_SETTINGS.mode,
     fontSize: FONT_SIZES.includes(raw.fontSize) ? raw.fontSize : DEFAULT_SETTINGS.fontSize,
     codeWidth: ['standard', 'fullscreen'].includes(raw.codeWidth) ? raw.codeWidth : DEFAULT_SETTINGS.codeWidth,
+    diffLayout: ['stacked', 'split'].includes(raw.diffLayout) ? raw.diffLayout : DEFAULT_SETTINGS.diffLayout,
     lightTheme: DIFF_THEMES.light.some(theme => theme.id === raw.lightTheme)
       ? raw.lightTheme : DEFAULT_SETTINGS.lightTheme,
     darkTheme: DIFF_THEMES.dark.some(theme => theme.id === raw.darkTheme)

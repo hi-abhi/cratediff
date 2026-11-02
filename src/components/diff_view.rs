@@ -6,6 +6,7 @@ use super::{
 use crate::{
     components::problem::Problem,
     diff::{Files, LoadError, text},
+    settings::{set_setting, use_settings},
 };
 use leptos::{html, prelude::*};
 use std::sync::Arc;
@@ -39,7 +40,8 @@ pub fn FilePanel(path: String, old_files: Arc<Files>, new_files: Arc<Files>) -> 
     let host = NodeRef::<html::Div>::new();
     let (error, set_error) = signal(None::<String>);
     let (all_lines, set_all_lines) = signal(identical);
-    let (split, set_split) = signal(false);
+    let settings = use_settings();
+    let split = Memo::new(move |_| settings.with(|settings| settings.diff_layout == "split"));
     Effect::new(move |_| {
         let Some(host) = host.get() else { return };
         let split = split.get();
@@ -72,7 +74,7 @@ pub fn FilePanel(path: String, old_files: Arc<Files>, new_files: Arc<Files>) -> 
                     <DiffContextToggle expanded=all_lines
                         on_toggle=Callback::new(move |()| set_all_lines.update(|value| *value = !*value))/>
                     <DiffLayoutToggle split=split
-                        on_select=Callback::new(move |value| set_split.set(value))/>
+                        on_select=Callback::new(move |value| set_setting("diffLayout", if value { "split" } else { "stacked" }))/>
                 </div>
             </div>
             {identical.then(|| view! { <p class="file-notice">"This file is unchanged."</p> })}

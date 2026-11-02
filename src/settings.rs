@@ -11,6 +11,7 @@ pub struct SettingsSnapshot {
     pub resolved_mode: String,
     pub font_size: u32,
     pub code_width: String,
+    pub diff_layout: String,
     pub mono_font: String,
     pub light_theme: String,
     pub dark_theme: String,
