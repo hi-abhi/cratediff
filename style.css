@@ -38,7 +38,7 @@ code, pre { font-family: var(--font-mono); }
 button, a, input { -webkit-tap-highlight-color: transparent; }
 .app { display: flex; flex-direction: column; min-height: 100vh; }
 .container { width: min(var(--container-max-width, 1240px), calc(100% - 64px)); margin-inline: auto; }
-:root[data-code-width="standard"] .app:has(.comparison-page) :is(.container, .nav-content) { width: min(var(--container-max-width, 1240px), 100%); margin-inline: auto; }
+:root[data-code-width="standard"] .app:has(.comparison-page) :is(.container, .nav-content) { width: min(var(--container-max-width, 1800px), 100%); margin-inline: auto; }
 :root[data-code-width="fullscreen"] .app:has(.comparison-page) .container { --container-max-width: 100%; }
 .navbar { background: var(--surface); border-bottom: 1px solid var(--border); }
 .nav-content { position: relative; display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 56px; padding: 8px 8px 8px 16px; gap: 16px; }

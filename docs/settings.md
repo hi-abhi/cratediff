@@ -78,9 +78,9 @@ Full screen is the default for new preferences and Reset to defaults. Saved
 Standard choices remain in effect. The retired Wide value is migrated to
 Full screen on load, preserving the other saved preferences.
 
-Standard keeps the comparison layout capped at 1240 px and centers the header
+Standard keeps the comparison layout capped at 1800 px and centers the header
 contents at the same width. The workspace meets the header and extends to the
-viewport bottom without vertical margins or padding. At 1240 px or narrower,
+viewport bottom without vertical margins or padding. At 1800 px or narrower,
 the header contents and workspace fill the available width without side gutters.
 Other pages keep their usual width.
 
