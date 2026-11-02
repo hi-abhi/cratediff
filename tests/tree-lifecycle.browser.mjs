@@ -575,8 +575,8 @@ test('tree stays in its sidebar through downloads, cached versions and navigatio
     assert.equal(await page.getByRole('treeitem', { name: 'README.md', exact: true }).count(), 0);
     const widthOf = selector => page.locator(selector).evaluate(element => element.getBoundingClientRect().width);
     await page.setViewportSize({ width: 2560, height: 1000 });
-    assert.equal(await widthOf('main.container'), 1800);
-    assert.equal(await widthOf('.nav-content'), 1800, 'Standard header matches the capped workspace width');
+    assert.equal(await widthOf('main.container'), 1920);
+    assert.equal(await widthOf('.nav-content'), 1920, 'Standard header matches the capped workspace width');
     const standardPanelWidth = await widthOf('.file-panel');
     const sidebarWidth = await widthOf('.file-sidebar');
     assert.equal(sidebarWidth, 300);
@@ -600,7 +600,7 @@ test('tree stays in its sidebar through downloads, cached versions and navigatio
     assert.equal(await widthOf('main.container'), 2560);
     assert.equal(await widthOf('.nav-content'), 2560);
     assert.equal(await widthOf('.file-sidebar'), sidebarWidth);
-    assert.ok(await widthOf('.file-panel') > standardPanelWidth + 700);
+    assert.ok(await widthOf('.file-panel') > standardPanelWidth + 600);
     assert.equal(downloads, 3, 'width changes must not load archives');
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('crate-diff.settings')).codeWidth), 'fullscreen');
     const comparisonUrl = page.url();
@@ -765,7 +765,7 @@ test('default full screen fills the viewport below the header and pins the summa
       assert.ok(Math.abs(frame.workspace.bottom - frame.height) <= 1);
       assert.ok(Math.abs(frame.diff.bottom - frame.height) <= 1, 'diff reaches the viewport bottom');
       if (expectedLayout === 'standard') {
-        const standardWidth = Math.min(1800, frame.width);
+        const standardWidth = Math.min(1920, frame.width);
         assert.equal(frame.workspace.width, standardWidth);
         assert.equal(frame.workspace.left, (frame.width - standardWidth) / 2,
           'Standard fills smaller screens and centers on wider screens');
@@ -870,7 +870,7 @@ test('default full screen fills the viewport below the header and pins the summa
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     await layout.getByRole('button', { name: 'Standard', exact: true }).click();
     await page.getByRole('button', { name: 'Done', exact: true }).click();
-    for (const [width, height] of [[2560, 1000], [1920, 1000], [1801, 900], [1800, 900], [1799, 900], [1440, 900], [1304, 900], [951, 800], [950, 800], [768, 800], [641, 800], [640, 800], [390, 844], [320, 650]]) {
+    for (const [width, height] of [[2560, 1000], [1921, 1000], [1920, 1000], [1919, 900], [1800, 900], [1440, 900], [1304, 900], [951, 800], [950, 800], [768, 800], [641, 800], [640, 800], [390, 844], [320, 650]]) {
       await page.setViewportSize({ width, height });
       await checkFrame(true, 'standard');
       await page.getByRole('button', { name: 'Hide file sidebar', exact: true }).click();
