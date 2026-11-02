@@ -199,6 +199,8 @@ on the existing instance.
 [`DiffContextToggle`](../src/components/diff_context_toggle.rs) controls full
 context with an icon button, a Show all lines tooltip, and `aria-pressed`.
 Change indicators use Pierre's `bars` style in both unified and split views.
+Code wraps by default in individual-file and all-changes views, including
+unchanged source files. Long lines remain readable without horizontal scrolling.
 
 Pierre owns the internal code markup, syntax tokens, word-level changes, line
 numbers, and per-hunk expansion. Leptos owns the filename toolbar, display

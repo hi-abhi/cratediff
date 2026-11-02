@@ -27,7 +27,7 @@ function archive(version, files) {
   return gzipSync(Buffer.concat([...chunks, Buffer.alloc(1024)]));
 }
 
-async function fixture(context, large = false, ordering = false) {
+async function fixture(context, large = false, ordering = false, extraFiles = () => ({})) {
   const files = version => {
     const result = {
       'Cargo.toml': `[package]\nname = "${name}"\nversion = "${version}"\n`,
@@ -51,7 +51,7 @@ async function fixture(context, large = false, ordering = false) {
     ]) {
       result[path] = `pub const VERSION: &str = "${version}";\n`;
     }
-    return result;
+    return Object.assign(result, extraFiles(version));
   };
   const archives = new Map(['1.0.0', '1.0.1', '1.0.2'].map(version => [version, archive(version, files(version))]));
   const versions = [...archives].map(([num, bytes]) => ({
@@ -276,6 +276,83 @@ for (const [label, engine] of [['Chromium', chromium], ['Firefox', firefox]]) {
       await page.getByRole('button', { name: 'Collapse src/many/file-099.rs', exact: true }).waitFor();
       await page.waitForFunction(() => document.querySelector('.pierre-review-host').scrollTop > 0);
       await checkLayout(page, true);
+      assert.deepEqual(errors, []);
+    } finally { await browser.close(); }
+  });
+
+  test(`${label}: long whitespace and unbroken tokens wrap in single-file and virtualized reviews`, { timeout: 60000 }, async () => {
+    const browser = await engine.launch();
+    try {
+      const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+      const longSource = marker =>
+        `pub fn long_line() { let value = 1;${' '.repeat(1000)}println!("${marker}"); }\n` +
+        `const LONG_${'X'.repeat(400)}_END: u8 = 0;\n`;
+      await fixture(context, true, false, version => ({
+        'src/wrapped.rs': longSource(`visible_tail_${version.replaceAll('.', '_')}`),
+        'src/unchanged-wrapped.rs': longSource('source_tail'),
+      }));
+      const page = await context.newPage();
+      page.setDefaultTimeout(8000);
+      const errors = [];
+      page.on('pageerror', error => errors.push(error.message));
+      await page.goto(`${base}/crate/${name}/1.0.0/1.0.1/src/wrapped.rs`);
+      await page.getByRole('button', { name: 'Hide file sidebar', exact: true }).click();
+
+      async function assertWrapped(host, marker) {
+        const line = page.locator(`${host} [data-line]`).filter({ hasText: marker }).last();
+        await line.waitFor({ state: 'attached' });
+        const geometry = await line.evaluate((line, marker) => {
+          const code = line.closest('[data-content]');
+          const pre = line.closest('pre');
+          const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT);
+          let node;
+          while ((node = walker.nextNode())) {
+            const index = node.textContent.indexOf(marker);
+            if (index < 0) continue;
+            const range = document.createRange();
+            range.setStart(node, index);
+            range.setEnd(node, index + marker.length);
+            return {
+              overflow: pre.dataset.overflow,
+              width: pre.clientWidth, scrollWidth: pre.scrollWidth,
+              content: code.getBoundingClientRect().toJSON(),
+              tail: [...range.getClientRects()].map(rect => rect.toJSON()),
+              height: line.getBoundingClientRect().height,
+              lineHeight: parseFloat(getComputedStyle(line).lineHeight),
+            };
+          }
+          return null;
+        }, marker);
+        assert.ok(geometry, 'the text at the far end of the source line is rendered');
+        assert.equal(geometry.overflow, 'wrap');
+        assert.ok(geometry.scrollWidth <= geometry.width + 1, 'code does not require horizontal scrolling');
+        assert.ok(geometry.height > geometry.lineHeight, 'the logical source line occupies multiple visual rows');
+        assert.ok(geometry.tail.every(rect =>
+          rect.left >= geometry.content.left - 1 && rect.right <= geometry.content.right + 1),
+        'text after long whitespace stays within its code column');
+      }
+
+      for (const width of [1440, 390]) {
+        await page.setViewportSize({ width, height: 900 });
+        for (const split of [false, true]) {
+          const layout = page.getByRole('button', { name: 'Split view', exact: true });
+          if ((await layout.getAttribute('aria-pressed')) !== String(split)) await layout.click();
+          await assertWrapped('.pierre-diff-host', 'visible_tail_1_0_1');
+          await assertWrapped('.pierre-diff-host', '_END');
+          await page.getByRole('button', { name: 'Show all changes', exact: true }).click();
+          await checkLayout(page, split);
+          await assertWrapped('.pierre-review-host', 'visible_tail_1_0_1');
+          await assertWrapped('.pierre-review-host', '_END');
+          await page.getByRole('button', { name: 'Show all changes', exact: true }).click();
+        }
+      }
+      await page.getByRole('button', { name: 'Show file sidebar', exact: true }).click();
+      await page.getByRole('button', { name: 'Search files', exact: true }).click();
+      await page.getByRole('searchbox', { name: 'Search files', exact: true }).fill('unchanged-wrapped.rs');
+      await page.getByRole('treeitem', { name: 'unchanged-wrapped.rs', exact: true }).click();
+      await page.getByRole('button', { name: 'Hide file sidebar', exact: true }).click();
+      await assertWrapped('.pierre-diff-host', 'source_tail');
+      await assertWrapped('.pierre-diff-host', '_END');
       assert.deepEqual(errors, []);
     } finally { await browser.close(); }
   });

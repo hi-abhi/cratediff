@@ -107,7 +107,7 @@ function diffOptions(settings, split, allLines) {
   return {
     theme: { light: settings.lightTheme, dark: settings.darkTheme },
     themeType: settings.resolvedMode,
-    overflow: 'scroll',
+    overflow: 'wrap',
     diffStyle: split ? 'split' : 'unified',
     diffIndicators: 'bars',
     lineDiffType: 'word-alt',
@@ -239,7 +239,7 @@ function mountReview(host, filesJson) {
       stickyHeaders: true,
       // Standalone diffs have an 8px gap above their code. Restore it after
       // CodeView's built-in header and account for it in virtualized layout.
-      unsafeCSS: '[data-code] { padding-top: 8px; }',
+      unsafeCSS: '[data-diff][data-overflow="wrap"], [data-file][data-overflow="wrap"] { padding-top: 8px; }',
       itemMetrics: { lineHeight: Math.ceil(settings.fontSize * 1.65), diffHeaderHeight: 36, paddingTop: 8 },
       layout: { paddingTop: 0, paddingBottom: 0, gap: 8 },
       renderCustomHeader,
