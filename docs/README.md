@@ -43,7 +43,8 @@ flowchart LR
 | [`src/components/`](../src/components/) | Reusable forms, cards, navigation, comparison controls, tree, and diff panel |
 | [`src/data.rs`](../src/data.rs) | Shared crate metadata, home summary client, formatting, and external link handling |
 | [`src/search.rs`](../src/search.rs) | Search response types, pagination size, search URLs, and search requests |
-| [`src/diff.rs`](../src/diff.rs) | Ordered version metadata, archive clients and caches, verified extraction, file classification, and line statistics |
+| [`src/diff.rs`](../src/diff.rs) | Ordered version metadata/cache, legacy archive verification, manifest-based file classification, and line statistics |
+| [`src/source.rs`](../src/source.rs) | CDN manifests, range requests, entry decompression/integrity, legacy fallback, and source caches |
 | [`src/components/pierre.rs`](../src/components/pierre.rs) | Rust bindings to browser renderer functions and renderer cleanup |
 | [`src/settings.rs`](../src/settings.rs) and [`js/settings.js`](../js/settings.js) | Typed bindings and the shared display preference store |
 | [`js/fonts.js`](../js/fonts.js) and [`js/settings-values.js`](../js/settings-values.js) | Font discovery/stacks and available diff schemes/defaults |
@@ -83,13 +84,13 @@ Display preferences are shared across routes and persisted across reloads.
 
 ## Current execution model
 
-Downloads are asynchronous, but archive decompression, extraction, Rust line
+Downloads are asynchronous, but entry decompression, legacy extraction, Rust line
 statistics, and the configured JavaScript rendering run on the browser's main
 thread. The integration does not configure a worker pool. Large comparisons
 therefore share the UI thread with these operations.
 
 Files stay in memory. The source cache is bounded by entry count, and each
-archive has a 128 MiB extracted-file-size limit. These limits do not establish a
+source inventory has a 128 MiB uncompressed-content limit. These limits do not establish a
 total browser memory budget: active comparisons, downloaded compressed bytes,
 and renderer data can exist alongside cached files.
 

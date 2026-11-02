@@ -5,15 +5,45 @@ use super::{
 };
 use crate::{
     components::problem::Problem,
-    diff::{Files, LoadError, text},
+    diff::{LoadError, text},
+    source::{SourceRelease, fetch_pair},
 };
 use leptos::{html, prelude::*};
 use std::sync::Arc;
 
 #[component]
-pub fn FilePanel(path: String, old_files: Arc<Files>, new_files: Arc<Files>) -> impl IntoView {
-    let old = old_files.get(&path);
-    let new = new_files.get(&path);
+pub fn FilePanel(
+    path: String,
+    old_source: SourceRelease,
+    new_source: SourceRelease,
+) -> impl IntoView {
+    let resource_path = path.clone();
+    let (retry, set_retry) = signal(0_u64);
+    let source = LocalResource::new(move || {
+        retry.get();
+        let path = resource_path.clone();
+        let old = old_source.clone();
+        let new = new_source.clone();
+        async move { fetch_pair(&old, &new, &path).await }
+    });
+    view! {
+        <Suspense fallback=|| view! { <div class="status" role="status">"Loading source file"</div> }>
+            {move || source.get().map(|result| match result {
+                Ok((old, new)) => view! { <LoadedFilePanel path=path.clone() old=old new=new/> }.into_any(),
+                Err(error) => view! { <Problem error=error retry=set_retry/> }.into_any(),
+            })}
+        </Suspense>
+    }
+}
+
+#[component]
+fn LoadedFilePanel(
+    path: String,
+    old: Option<Arc<Vec<u8>>>,
+    new: Option<Arc<Vec<u8>>>,
+) -> impl IntoView {
+    let old = old.as_deref();
+    let new = new.as_deref();
     if old.is_none() && new.is_none() {
         return view! { <Problem error=LoadError::NotFound(format!("The file “{path}” does not exist in either version."))/> }.into_any();
     }

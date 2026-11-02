@@ -70,7 +70,7 @@ pub fn DebugPage() -> impl IntoView {
             <p>"All localStorage keys for this site, including saved settings. Stored JSON is expanded for readability."</p>
             <pre aria-label="Local storage dump">{storage_dump}</pre>
             <h2>"Crate caches"</h2>
-            <p>"Caches belong to this tab's running app. A full page reload clears them. All sizes are in bytes. Metadata sizes measure serialized cached JSON; source sizes measure uncompressed file contents. Totals exclude allocator and container overhead."</p>
+            <p>"Caches belong to this tab's running app. A full page reload clears them. All sizes are in bytes. Metadata sizes measure serialized cached JSON; source sizes include manifests and cached uncompressed file contents. Totals exclude allocator and container overhead."</p>
             <pre aria-label="Cache dump">{cache_dump}</pre>
         </article>
     }

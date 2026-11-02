@@ -6,6 +6,7 @@ import { chromium } from 'playwright';
 import { bundledThemesInfo } from 'shiki/themes';
 import { normalizeTheme } from 'shiki/core';
 import { DIFF_THEMES } from '../js/settings-values.js';
+import { serveSource } from './helpers/source-fixtures.mjs';
 
 const base = process.env.TEST_BASE_URL ?? 'http://127.0.0.1:8080';
 const name = 'tree-lifecycle';
@@ -134,8 +135,8 @@ test('home keeps discovery lists intact and searches the registry only on Enter'
   }
 });
 
-// Checksummed tar.gz fixtures exercise the real archive loader without relying
-// on registry availability or particular published releases.
+// Checksummed tar.gz fixtures are repacked into seekable ZIPs and manifests by
+// serveSource, matching the registry protocol without depending on live releases.
 function archive(version, large = false) {
   const files = {
     'Cargo.toml': `[package]\nname = "${name}"\nversion = "${version}"\n`,
@@ -172,7 +173,7 @@ function archive(version, large = false) {
   return gzipSync(Buffer.concat([...chunks, Buffer.alloc(1024)]));
 }
 
-test('browse links redirect to a full source viewer and download each release once', { timeout: 30000 }, async () => {
+test('browse links redirect to a full source viewer and load each manifest once', { timeout: 30000 }, async () => {
   const version = '1.0.2+build.1';
   const archives = new Map([
     ['1.0.1', archive('1.0.1')],
@@ -193,15 +194,7 @@ test('browse links redirect to a full source viewer and download each release on
       json: { crate: { id: name, max_version: version, downloads: 0 }, versions },
       headers: { 'access-control-allow-origin': '*' },
     }));
-    await page.route(`https://static.crates.io/crates/${name}/*`, route => {
-      const filename = decodeURIComponent(new URL(route.request().url()).pathname.split('/').at(-1));
-      const requested = filename.slice(name.length + 1, -'.crate'.length);
-      downloads.push(requested);
-      return route.fulfill({
-        body: archives.get(requested), contentType: 'application/octet-stream',
-        headers: { 'access-control-allow-origin': '*' },
-      });
-    });
+    await page.route(`https://static.crates.io/crates/${name}/*`, route => serveSource(route, name, archives, requested => downloads.push(requested)));
     for (const alias of [encodeURIComponent(version), 'latest']) {
       const before = downloads.length;
       await page.goto(`${base}/browse/${name}/${alias}`);
@@ -223,12 +216,12 @@ test('browse links redirect to a full source viewer and download each release on
       const source = page.locator('.pierre-diff-host [data-code]').first();
       await source.filter({ hasText: 'VALUE_399' }).waitFor();
       assert.ok((await source.textContent()).includes('VALUE_0'));
-      assert.equal(downloads.length, before + 1, 'same-version browsing downloads one archive');
+      assert.equal(downloads.length, before + 1, 'same-version browsing loads one manifest');
       assert.equal(downloads.at(-1), version);
       await page.reload();
       await source.filter({ hasText: 'VALUE_399' }).waitFor();
       assert.equal(page.url(), fileUrl, 'source file links survive reload');
-      assert.equal(downloads.length, before + 2, 'reload also downloads only one archive');
+      assert.equal(downloads.length, before + 2, 'reload also loads only one manifest');
     }
     const before = downloads.length;
     await page.goto(`${base}/browse/${name}/%5E1`);
@@ -263,13 +256,7 @@ test('short crate links resolve versions under the crate prefix and survive relo
       json: { crate: krate, versions },
       headers: { 'access-control-allow-origin': '*' },
     }));
-    await page.route(`https://static.crates.io/crates/${name}/*`, route => {
-      const version = route.request().url().match(/-(\d+\.\d+\.\d+)\.crate$/)[1];
-      return route.fulfill({
-        body: archives.get(version), contentType: 'application/octet-stream',
-        headers: { 'access-control-allow-origin': '*' },
-      });
-    });
+    await page.route(`https://static.crates.io/crates/${name}/*`, route => serveSource(route, name, archives));
     await page.goto(base);
     const crateLink = page.getByRole('link', { name, exact: true });
     await crateLink.waitFor();
@@ -312,16 +299,7 @@ test('tree stays in its sidebar through downloads, cached versions and navigatio
       headers: { 'access-control-allow-origin': '*' },
     }));
     let downloads = 0;
-    await page.route(`https://static.crates.io/crates/${name}/*`, async route => {
-      downloads++;
-      const version = route.request().url().match(/-(\d+\.\d+\.\d+)\.crate$/)[1];
-      await new Promise(resolve => setTimeout(resolve, 100));
-      await route.fulfill({
-        body: archives.get(version),
-        contentType: 'application/octet-stream',
-        headers: { 'access-control-allow-origin': '*' },
-      });
-    });
+    await page.route(`https://static.crates.io/crates/${name}/*`, route => serveSource(route, name, archives, () => downloads++, 100));
 
     async function checkTree(checkVersions = true) {
       const compared = new URL(page.url()).pathname.split('/').slice(3, 5);
@@ -668,13 +646,7 @@ test('default full screen fills the viewport below the header and pins the summa
       json: { crate: { id: name, max_version: nextVersion, downloads: 0 }, versions },
       headers: { 'access-control-allow-origin': '*' },
     }));
-    await page.route(`https://static.crates.io/crates/${name}/*`, route => {
-      const version = route.request().url().match(/-(\d+\.\d+\.\d+)\.crate$/)[1];
-      return route.fulfill({
-        body: archives.get(version), contentType: 'application/octet-stream',
-        headers: { 'access-control-allow-origin': '*' },
-      });
-    });
+    await page.route(`https://static.crates.io/crates/${name}/*`, route => serveSource(route, name, archives));
     await page.goto(`${base}/crate/${name}/${oldVersion}/${newVersion}/src/lib.rs`);
     await page.locator('.pierre-diff-host [data-code]').first().waitFor();
     const decoration = await page.getByRole('treeitem', { name: 'lib.rs', exact: true })
@@ -873,14 +845,7 @@ test('all diff schemes render, follow the resolved mode, and preserve both prefe
       headers: { 'access-control-allow-origin': '*' },
     }));
     let downloads = 0;
-    await page.route(`https://static.crates.io/crates/${name}/*`, route => {
-      downloads++;
-      const version = route.request().url().match(/-(\d+\.\d+\.\d+)\.crate$/)[1];
-      return route.fulfill({
-        body: archives.get(version), contentType: 'application/octet-stream',
-        headers: { 'access-control-allow-origin': '*' },
-      });
-    });
+    await page.route(`https://static.crates.io/crates/${name}/*`, route => serveSource(route, name, archives, () => downloads++));
     await page.goto(`${base}/crate/${name}/1.0.0/1.0.1/src/lib.rs`);
     await page.locator('.pierre-diff-host [data-code]').first().waitFor();
     const comparisonUrl = page.url();

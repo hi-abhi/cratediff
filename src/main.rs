@@ -4,6 +4,7 @@ mod data;
 mod diff;
 mod search;
 mod settings;
+mod source;
 mod views;
 
 fn main() {

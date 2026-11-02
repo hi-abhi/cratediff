@@ -4,7 +4,10 @@
 
 It is a WebAssembly binary that runs entirely in the browser and doesn't need a
 backend. Crate Diff is inspired by diff.rs. The app uses Leptos as the frontend
-framework and talks directly to the crates.io API.
+framework and talks directly to the crates.io API. Source files use CDN ZIP
+manifests and byte-range requests: browsing loads selected files, while
+comparisons load changed files to compute line counts. Missing ZIP manifests
+fall back to checksum-verified Cargo archives.
 
 ## Routes
 

@@ -1,6 +1,6 @@
 use crate::{
     components::{diff_view::FilePanel, file_tree::FileTree, sidebar_toggle::SidebarToggle},
-    diff::{Comparison, FileStatus, file_changes},
+    diff::{Comparison, FileStatus},
 };
 use leptos::{html, prelude::*};
 use leptos_router::hooks::use_params_map;
@@ -13,7 +13,7 @@ pub fn DiffWorkspace(
     toggle_sidebar: Callback<()>,
 ) -> impl IntoView {
     let params = use_params_map();
-    let changes = file_changes(&comparison.old_files, &comparison.new_files);
+    let changes = comparison.changes.clone();
     let changed_count = changes
         .iter()
         .filter(|file| file.status != FileStatus::Unchanged)
@@ -73,7 +73,7 @@ pub fn DiffWorkspace(
                 {move || {
                     let path = selected.get();
                     comparison.with_value(|comparison| {
-                        view! { <FilePanel path=path old_files=comparison.old_files.clone() new_files=comparison.new_files.clone()/> }
+                        view! { <FilePanel path=path old_source=comparison.old_source.clone() new_source=comparison.new_source.clone()/> }
                     })
                 }}
             </div>

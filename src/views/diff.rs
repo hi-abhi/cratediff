@@ -3,7 +3,7 @@ use crate::{
         comparison_header::ComparisonHeader, diff_workspace::DiffWorkspace, page_title::PageTitle,
         problem::Problem,
     },
-    diff::{Comparison, CrateResponse, LoadError, comparison_url, fetch_crate, fetch_source},
+    diff::{CrateResponse, LoadError, compare_sources, comparison_url, fetch_crate},
 };
 use leptos::prelude::*;
 use leptos_router::{NavigateOptions, components::Redirect, hooks::use_params_map};
@@ -62,27 +62,14 @@ fn CrateComparison(metadata: CrateResponse) -> impl IntoView {
         let name = metadata.with_value(|metadata| metadata.krate.id.clone());
         async move {
             let (old, new) = versions?;
-            let (old_files, new_files) = if old == new {
-                let files = fetch_source(&name, &old).await?;
-                (files.clone(), files)
-            } else {
-                let (old_files, new_files) =
-                    futures::join!(fetch_source(&name, &old), fetch_source(&name, &new));
-                (old_files?, new_files?)
-            };
-            Ok::<_, LoadError>(Comparison {
-                old,
-                new,
-                old_files,
-                new_files,
-            })
+            compare_sources(&old, &new, &name).await
         }
     });
     view! {
         <ComparisonHeader metadata=metadata.get_value() versions=versions/>
         {move || versions.get().err().map(|error| view! { <Problem error=error/> })}
         <Suspense fallback=|| view! {
-            <div class="status" role="status">"Downloading and comparing crate source"</div>
+            <div class="status" role="status">"Loading source manifests and comparing changed files"</div>
         }>
             {move || sources.get().map(|result| match result {
                 Ok(comparison) => view! {

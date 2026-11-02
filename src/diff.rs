@@ -8,10 +8,13 @@ use std::{
     cell::RefCell,
     collections::{BTreeMap, BTreeSet, HashMap},
     io::Read,
-    sync::Arc,
 };
 
-use crate::data::Crate;
+use crate::{
+    data::Crate,
+    source::{self, SourceRelease},
+};
+use futures::{StreamExt, TryStreamExt};
 
 pub type Files = BTreeMap<String, Vec<u8>>;
 
@@ -84,18 +87,15 @@ impl CrateResponse {
 }
 
 const METADATA_CACHE_LIMIT: usize = 16;
-const SOURCE_CACHE_LIMIT: usize = 10;
 
 thread_local! {
     static METADATA_CACHE: RefCell<HashMap<String, CrateResponse>> = RefCell::new(HashMap::new());
-    // Bound the source cache so browsing many versions does not retain every archive.
-    static SOURCE_CACHE: RefCell<HashMap<(String, String), Arc<Files>>> = RefCell::new(HashMap::new());
 }
 
 #[derive(serde::Serialize)]
 pub struct CacheSnapshot {
     metadata: CacheDetails<MetadataCacheEntry>,
-    sources: CacheDetails<SourceCacheEntry>,
+    sources: source::SourceCacheSnapshot,
     total_bytes: usize,
 }
 
@@ -111,14 +111,6 @@ struct CacheDetails<Entry> {
 struct MetadataCacheEntry {
     crate_name: String,
     versions: Vec<String>,
-    bytes: usize,
-}
-
-#[derive(serde::Serialize)]
-struct SourceCacheEntry {
-    crate_name: String,
-    version: String,
-    file_count: usize,
     bytes: usize,
 }
 
@@ -143,37 +135,12 @@ pub fn cache_snapshot() -> CacheSnapshot {
             .collect::<Vec<_>>()
     });
     metadata_entries.sort_by(|left, right| left.crate_name.cmp(&right.crate_name));
-    let mut source_entries = SOURCE_CACHE.with(|cache| {
-        cache
-            .borrow()
-            .iter()
-            .map(|((name, version), files)| SourceCacheEntry {
-                crate_name: name.clone(),
-                version: version.clone(),
-                file_count: files.len(),
-                bytes: files.values().map(Vec::len).sum(),
-            })
-            .collect::<Vec<_>>()
-    });
-    source_entries.sort_by(|left, right| {
-        left.crate_name.cmp(&right.crate_name).then_with(|| {
-            match (
-                Version::parse(&left.version),
-                Version::parse(&right.version),
-            ) {
-                (Ok(left), Ok(right)) => right.cmp_precedence(&left),
-                _ => left.version.cmp(&right.version),
-            }
-        })
-    });
     let metadata_bytes = metadata_entries
         .iter()
         .map(|entry| entry.bytes)
         .sum::<usize>();
-    let source_bytes = source_entries
-        .iter()
-        .map(|entry| entry.bytes)
-        .sum::<usize>();
+    let sources = source::cache_snapshot();
+    let source_bytes = sources.total_bytes;
     CacheSnapshot {
         metadata: CacheDetails {
             entry_count: metadata_entries.len(),
@@ -181,12 +148,7 @@ pub fn cache_snapshot() -> CacheSnapshot {
             total_bytes: metadata_bytes,
             entries: metadata_entries,
         },
-        sources: CacheDetails {
-            entry_count: source_entries.len(),
-            entry_limit: SOURCE_CACHE_LIMIT,
-            total_bytes: source_bytes,
-            entries: source_entries,
-        },
+        sources,
         total_bytes: metadata_bytes + source_bytes,
     }
 }
@@ -227,40 +189,6 @@ pub async fn fetch_crate(name: &str) -> Result<CrateResponse, LoadError> {
         cache.insert(name.to_owned(), metadata.clone());
     });
     Ok(metadata)
-}
-
-pub async fn fetch_source(name: &str, version: &VersionInfo) -> Result<Arc<Files>, LoadError> {
-    let cache_key = (name.to_owned(), version.num.clone());
-    let key = format!("{name}-{}", version.num);
-    if let Some(cached) = SOURCE_CACHE.with(|cache| cache.borrow().get(&cache_key).cloned()) {
-        return Ok(cached);
-    }
-    let url = format!("https://static.crates.io/crates/{name}/{key}.crate");
-    let response = Request::get(&url).send().await.map_err(|_| {
-        LoadError::Message(format!(
-            "Could not download {key}. Check your connection and try again."
-        ))
-    })?;
-    if !response.ok() {
-        return Err(LoadError::Message(format!(
-            "Downloading {key} returned HTTP {}.",
-            response.status()
-        )));
-    }
-    let bytes = response
-        .binary()
-        .await
-        .map_err(|_| LoadError::Message(format!("Could not read {key}.")))?;
-    let files =
-        Arc::new(unpack_source(&key, &version.checksum, &bytes).map_err(LoadError::Message)?);
-    SOURCE_CACHE.with(|cache| {
-        let mut cache = cache.borrow_mut();
-        if cache.len() >= SOURCE_CACHE_LIMIT {
-            cache.clear();
-        }
-        cache.insert(cache_key, files.clone());
-    });
-    Ok(files)
 }
 
 fn sha256_checksum(bytes: &[u8]) -> String {
@@ -343,42 +271,90 @@ pub fn text(bytes: &[u8]) -> Option<&str> {
     }
 }
 
-pub fn file_changes(old: &Files, new: &Files) -> Vec<FileChange> {
-    let paths: BTreeSet<_> = old.keys().chain(new.keys()).cloned().collect();
+fn line_counts(left: &str, right: &str) -> (usize, usize) {
+    let (mut added, mut removed) = (0, 0);
+    for line in TextDiff::from_lines(left, right).iter_all_changes() {
+        match line.tag() {
+            ChangeTag::Insert => added += 1,
+            ChangeTag::Delete => removed += 1,
+            _ => {}
+        }
+    }
+    (added, removed)
+}
+
+fn manifest_changes(old: &SourceRelease, new: &SourceRelease) -> Vec<FileChange> {
+    let paths: BTreeSet<_> = old.files.keys().chain(new.files.keys()).cloned().collect();
     paths
         .into_iter()
         .map(|path| {
-            let before = old.get(&path);
-            let after = new.get(&path);
-            let status = match (before, after) {
+            let status = match (old.files.get(&path), new.files.get(&path)) {
                 (None, Some(_)) => FileStatus::Added,
                 (Some(_), None) => FileStatus::Removed,
-                (Some(left), Some(right)) if left == right => FileStatus::Unchanged,
+                (Some(left), Some(right))
+                    if left.sha256.eq_ignore_ascii_case(&right.sha256)
+                        && left.uncompressed_size == right.uncompressed_size =>
+                {
+                    FileStatus::Unchanged
+                }
                 _ => FileStatus::Modified,
             };
-            let (mut added, mut removed) = (0, 0);
-            if status != FileStatus::Unchanged
-                && let (Some(left), Some(right)) = (
-                    text(before.map(Vec::as_slice).unwrap_or_default()),
-                    text(after.map(Vec::as_slice).unwrap_or_default()),
-                )
-            {
-                for line in TextDiff::from_lines(left, right).iter_all_changes() {
-                    match line.tag() {
-                        ChangeTag::Insert => added += 1,
-                        ChangeTag::Delete => removed += 1,
-                        _ => {}
-                    }
-                }
-            }
             FileChange {
                 path,
                 status,
-                added,
-                removed,
+                added: 0,
+                removed: 0,
             }
         })
         .collect()
+}
+
+pub async fn compare_sources(
+    old: &VersionInfo,
+    new: &VersionInfo,
+    name: &str,
+) -> Result<Comparison, LoadError> {
+    let (old_source, new_source) = if old.num == new.num {
+        let source = source::fetch_source(name, old).await?;
+        (source.clone(), source)
+    } else {
+        let (left, right) = futures::join!(
+            source::fetch_source(name, old),
+            source::fetch_source(name, new)
+        );
+        (left?, right?)
+    };
+    let changes = manifest_changes(&old_source, &new_source);
+    // Preserve complete sidebar line totals, while unchanged files stay unloaded.
+    // Bound concurrent range requests so large comparisons do not flood the CDN.
+    let mut changes = futures::stream::iter(changes.into_iter().map(|mut change| {
+        let old_source = &old_source;
+        let new_source = &new_source;
+        async move {
+            if change.status != FileStatus::Unchanged {
+                let (left, right) =
+                    source::fetch_pair(old_source, new_source, &change.path).await?;
+                if let (Some(left), Some(right)) = (
+                    text(left.as_deref().map(Vec::as_slice).unwrap_or_default()),
+                    text(right.as_deref().map(Vec::as_slice).unwrap_or_default()),
+                ) {
+                    (change.added, change.removed) = line_counts(left, right);
+                }
+            }
+            Ok::<_, LoadError>(change)
+        }
+    }))
+    .buffer_unordered(6)
+    .try_collect::<Vec<_>>()
+    .await?;
+    changes.sort_by(|left, right| left.path.cmp(&right.path));
+    Ok(Comparison {
+        old: old.clone(),
+        new: new.clone(),
+        old_source,
+        new_source,
+        changes,
+    })
 }
 
 pub fn crate_url(name: &str) -> String {
@@ -409,8 +385,9 @@ pub fn comparison_url(name: &str, old: &str, new: &str, file: &str) -> String {
 pub struct Comparison {
     pub old: VersionInfo,
     pub new: VersionInfo,
-    pub old_files: Arc<Files>,
-    pub new_files: Arc<Files>,
+    pub old_source: SourceRelease,
+    pub new_source: SourceRelease,
+    pub changes: Vec<FileChange>,
 }
 
 #[cfg(test)]
@@ -473,14 +450,20 @@ mod tests {
             ("same.rs".into(), b"same\n".to_vec()),
             ("binary.dat".into(), vec![0, 2]),
         ]);
-        let files = file_changes(&old, &new)
-            .into_iter()
-            .map(|file| (file.path.clone(), file))
-            .collect::<BTreeMap<_, _>>();
+        let files = manifest_changes(
+            &source::test_source(old.clone()),
+            &source::test_source(new.clone()),
+        )
+        .into_iter()
+        .map(|file| (file.path.clone(), file))
+        .collect::<BTreeMap<_, _>>();
         assert_eq!(files.len(), 5);
         assert_eq!(files["modified.rs"].status, FileStatus::Modified);
         assert_eq!(
-            (files["modified.rs"].added, files["modified.rs"].removed),
+            line_counts(
+                text(&old["modified.rs"]).unwrap(),
+                text(&new["modified.rs"]).unwrap()
+            ),
             (2, 1)
         );
         assert_eq!(files["added.rs"].status, FileStatus::Added);
@@ -515,22 +498,6 @@ mod tests {
             cache.clear();
             cache.insert("demo".into(), metadata);
         });
-        let prerelease_files = Arc::new(Files::from([
-            ("one.rs".into(), vec![1, 2, 3]),
-            ("two.rs".into(), vec![4, 5, 6, 7, 8]),
-        ]));
-        SOURCE_CACHE.with(|cache| {
-            let mut cache = cache.borrow_mut();
-            cache.clear();
-            cache.insert(
-                ("hyphenated-crate".into(), "1.0.0-rc.1".into()),
-                prerelease_files.clone(),
-            );
-            cache.insert(
-                ("hyphenated-crate".into(), "1.0.0".into()),
-                Arc::new(Files::from([("lib.rs".into(), vec![9])])),
-            );
-        });
         let snapshot = cache_snapshot();
         assert_eq!(snapshot.metadata.entry_count, 1);
         assert_eq!(snapshot.metadata.entries[0].crate_name, "demo");
@@ -539,28 +506,14 @@ mod tests {
             ["2.0.0", "1.2.0", "1.0.0"]
         );
         assert_eq!(snapshot.metadata.total_bytes, metadata_bytes);
-        assert_eq!(snapshot.sources.entry_count, 2);
-        assert_eq!(snapshot.sources.entries[0].version, "1.0.0");
-        assert_eq!(snapshot.sources.entries[1].version, "1.0.0-rc.1");
-        assert_eq!(snapshot.sources.entries[1].crate_name, "hyphenated-crate");
-        assert_eq!(snapshot.sources.entries[1].file_count, 2);
-        assert_eq!(snapshot.sources.entries[1].bytes, 8);
-        assert_eq!(snapshot.sources.total_bytes, 9);
-        assert_eq!(snapshot.total_bytes, metadata_bytes + 9);
+        assert_eq!(
+            snapshot.total_bytes,
+            metadata_bytes + snapshot.sources.total_bytes
+        );
         assert_eq!(
             serde_json::to_value(&snapshot).unwrap(),
             serde_json::to_value(cache_snapshot()).unwrap()
         );
-        SOURCE_CACHE.with(|cache| {
-            assert!(Arc::ptr_eq(
-                cache
-                    .borrow()
-                    .get(&("hyphenated-crate".into(), "1.0.0-rc.1".into()))
-                    .unwrap(),
-                &prerelease_files,
-            ));
-            cache.borrow_mut().clear();
-        });
         METADATA_CACHE.with(|cache| cache.borrow_mut().clear());
     }
 
