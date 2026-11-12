@@ -8,6 +8,8 @@
   --border: light-dark(#dce2eb, #343d4b);
   --accent: light-dark(#46546a, #ccd5e3);
   --tint: light-dark(#edf1f6, #2c3441);
+  /* Must stay distinct from --tree-background even when the tree is unfocused. */
+  --tree-selected: light-dark(#c9d3e1, #2c3441);
   --brand-icon-text: light-dark(#fff, #181c22);
   --color-added: light-dark(#327545, #9ad8a9);
   --color-removed: light-dark(#b44040, #f09d9d);
@@ -142,7 +144,7 @@ h1 { margin: 0; font-size: clamp(32px, 5vw, 46px); font-weight: 650; letter-spac
   --trees-fg-override: var(--text);
   --trees-fg-muted-override: var(--muted);
   --trees-accent-override: var(--accent);
-  --trees-selected-bg-override: var(--tint);
+  --trees-selected-bg-override: var(--tree-selected);
   --trees-border-color-override: var(--border);
   --trees-status-added-override: light-dark(#327545, #9ad8a9);
   --trees-status-deleted-override: light-dark(#b44040, #f09d9d);
