@@ -1,10 +1,13 @@
-use super::pierre::{Renderer, mount_diff, update_diff};
+use super::pierre::{Renderer, diff_scroll_position, mount_diff, update_diff};
 use crate::{
     components::problem::Problem,
     diff::{Files, LoadError, text},
 };
 use leptos::{html, prelude::*};
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
+
+/// Scroll offsets (top, left) per file path, kept for the lifetime of a comparison.
+pub type ScrollPositions = StoredValue<HashMap<String, (i32, i32)>>;
 
 #[component]
 pub fn FilePanel(
@@ -13,6 +16,7 @@ pub fn FilePanel(
     new_files: Arc<Files>,
     all_lines: ReadSignal<bool>,
     split: Memo<bool>,
+    scroll_positions: ScrollPositions,
 ) -> impl IntoView {
     let old = old_files.get(&path);
     let new = new_files.get(&path);
@@ -47,7 +51,12 @@ pub fn FilePanel(
         renderer.update_value(|instance| {
             if instance.is_none() && !empty {
                 let (path, old, new) = source.get_value();
-                match mount_diff(host.as_ref(), &path, old, new, identical) {
+                // Leptos reuses this host across files; Pierre restores the
+                // file's saved offset, or the top for a file not yet viewed.
+                let (top, left) = scroll_positions
+                    .with_value(|positions| positions.get(&path).copied())
+                    .unwrap_or_default();
+                match mount_diff(host.as_ref(), &path, old, new, identical, top, left) {
                     Ok(value) => *instance = Some(Renderer(value)),
                     Err(error) => {
                         set_error.set(Some(format!("Unable to render this diff: {error:?}")))
@@ -61,7 +70,16 @@ pub fn FilePanel(
     });
     on_cleanup(move || {
         renderer.update_value(|instance| {
-            instance.take();
+            let Some(instance) = instance.take() else {
+                return;
+            };
+            if let [top, left] = diff_scroll_position(&instance.0)[..] {
+                source.with_value(|(path, ..)| {
+                    scroll_positions.update_value(|positions| {
+                        positions.insert(path.clone(), (top, left));
+                    })
+                });
+            }
         })
     });
     view! {

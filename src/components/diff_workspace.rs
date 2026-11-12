@@ -71,6 +71,7 @@ pub fn DiffWorkspace(
     let settings = use_settings();
     let split = Memo::new(move |_| settings.with(|settings| settings.diff_layout == "split"));
     let (all_lines, set_all_lines) = signal(false);
+    let scroll_positions = StoredValue::new(Default::default());
     let identity = StoredValue::new(name.clone());
     let navigate = use_navigate();
     let toggle_full_diff = Callback::new(move |()| {
@@ -125,7 +126,7 @@ pub fn DiffWorkspace(
                 <Show when=move || full_diff.get() fallback=move || view! {
                     {move || comparison.with_value(|comparison| view! {
                         <FilePanel path=selected.get() old_files=comparison.old_files.clone() new_files=comparison.new_files.clone()
-                            all_lines=all_lines split=split/>
+                            all_lines=all_lines split=split scroll_positions=scroll_positions/>
                     })}
                 }>
                     <ChangeReview files=scoped selected=route_file

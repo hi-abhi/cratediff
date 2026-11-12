@@ -63,7 +63,9 @@ The app has no page footer.
 Version dropdown changes retain the selected file and review scope in the comparison
 URL. Selecting a file updates the URL through the tree callback. The sidebar
 stays mounted during file navigation; the selected file panel is rebuilt with
-its own expanded-context state. Split/Stacked layout uses the persisted shared
+its own expanded-context state. Each file's scroll offset is remembered for the
+comparison: a file not yet viewed opens at the top, and returning to a file
+restores where it was left. Split/Stacked layout uses the persisted shared
 display preference.
 Hiding the sidebar keeps its tree mounted and preserves folders and filters.
 The workspace gives the recovered space to the diff, leaving a slim strip with
@@ -141,7 +143,8 @@ absent-file conversion in `js/pierre.js`.
 | `mountTree` | DOM host, JSON file changes, selected path, Rust callback; creates a Pierre `FileTree` |
 | `updateTree` | Instance, JSON visible paths, selected path; updates filtering and selection |
 | `collapseTree` | Instance; collapses all directory handles while retaining the selected diff |
-| `mountDiff` | DOM host, filename, optional old/new text, identical flag; creates `File` or `FileDiff` |
+| `mountDiff` | DOM host, filename, optional old/new text, identical flag, saved top/left offset; creates `File` or `FileDiff` and restores the offset once highlighting has rendered |
+| `diffScrollPosition` | Instance; returns its current top/left offset, or the pending restore target |
 | `updateDiff` | Instance, split-mode flag, all-lines flag; updates options and renders |
 | `mountReview` | DOM host and JSON changed-file sources; creates a virtualized Pierre `CodeView` |
 | `updateReview` | Instance, split-mode flag, all-lines flag; updates list options |

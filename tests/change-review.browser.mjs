@@ -357,3 +357,47 @@ for (const [label, engine] of [['Chromium', chromium], ['Firefox', firefox]]) {
     } finally { await browser.close(); }
   });
 }
+
+test('single-file view starts new files at the top and restores each file\'s scroll position', { timeout: 60000 }, async () => {
+  const browser = await chromium.launch();
+  try {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 700 } });
+    const long = (version, lines) => Array.from({ length: lines }, (_, line) => `pub const LINE_${line}: &str = "${version}";\n`).join('');
+    await fixture(context, false, false, version => ({
+      'src/long-a.rs': long(version, 300),
+      'src/long-b.rs': long(version, 250),
+      'src/long-c.rs': long(version, 200),
+    }));
+    const page = await context.newPage();
+    page.setDefaultTimeout(8000);
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    const host = page.locator('.pierre-diff-host');
+    const open = async file => {
+      await page.getByRole('treeitem', { name: file, exact: true }).click();
+      await page.waitForFunction(file => document.querySelector('.diff-heading h2')?.textContent === `src/${file}`
+        && document.querySelector('.pierre-diff-host')?.scrollHeight > 2000, file);
+    };
+    const scrollTop = () => host.evaluate(element => element.scrollTop);
+    await page.goto(`${base}/crate/${name}/1.0.0/1.0.1/src/long-a.rs`);
+    await page.waitForFunction(() => document.querySelector('.pierre-diff-host')?.scrollHeight > 2000);
+    const bottom = await host.evaluate(element => (element.scrollTop = element.scrollHeight, element.scrollTop));
+    assert.ok(bottom > 1000);
+    await open('long-b.rs');
+    assert.equal(await scrollTop(), 0, 'an unvisited file starts at the top');
+    await host.evaluate(element => { element.scrollTop = 1200; });
+    await page.waitForFunction(() => document.querySelector('.pierre-diff-host').scrollTop === 1200);
+    await open('long-c.rs');
+    assert.equal(await scrollTop(), 0, 'an unvisited file starts at the top');
+    await open('long-a.rs');
+    assert.equal(await scrollTop(), bottom, 'returning restores the earlier position');
+    await open('long-b.rs');
+    assert.equal(await scrollTop(), 1200, 'returning restores the earlier position');
+    await page.getByRole('button', { name: 'Split view', exact: true }).click();
+    await page.locator('.pierre-diff-host [data-diff-type="split"]').first().waitFor();
+    assert.ok(await scrollTop() > 0, 'layout changes do not reset the position');
+    assert.deepEqual(errors, []);
+  } finally {
+    await browser.close();
+  }
+});

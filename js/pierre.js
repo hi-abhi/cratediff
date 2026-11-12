@@ -116,7 +116,33 @@ function diffOptions(settings, split, allLines) {
   };
 }
 
-function mountDiff(host, path, oldSource, newSource, identical) {
+// Leptos reuses the host element across files, so every mount sets its offset.
+// Highlighting renders asynchronously; keep reapplying a saved offset until the
+// content is tall enough, the user scrolls, or a short timeout passes.
+function restoreScroll(host, top, left) {
+  const target = { top, left, pending: true };
+  const inputEvents = ['wheel', 'touchstart', 'pointerdown', 'keydown'];
+  const stop = () => {
+    target.pending = false;
+    for (const type of inputEvents) host.removeEventListener(type, stop);
+  };
+  for (const type of inputEvents) host.addEventListener(type, stop, { passive: true });
+  const started = performance.now();
+  (function apply() {
+    if (!target.pending) return;
+    host.scrollTop = top;
+    host.scrollLeft = left;
+    const reached = Math.abs(host.scrollTop - top) <= 1 && Math.abs(host.scrollLeft - left) <= 1;
+    if (reached || performance.now() - started > 3000) stop();
+    else requestAnimationFrame(apply);
+  })();
+  return {
+    position: () => target.pending ? [top, left] : [host.scrollTop, host.scrollLeft],
+    stop,
+  };
+}
+
+function mountDiff(host, path, oldSource, newSource, identical, top, left) {
   const view = identical ? new File() : new FileDiff();
   const before = sourceFile(path, oldSource);
   const after = sourceFile(path, newSource);
@@ -140,7 +166,12 @@ function mountDiff(host, path, oldSource, newSource, identical) {
       view.setThemeType(settings.resolvedMode);
     }
   });
-  return { update, cleanUp() { unsubscribe(); view.cleanUp(); } };
+  const scroll = restoreScroll(host, top, left);
+  return {
+    update,
+    scrollPosition: () => Int32Array.from(scroll.position()),
+    cleanUp() { scroll.stop(); unsubscribe(); view.cleanUp(); },
+  };
 }
 
 function mountReview(host, filesJson) {
@@ -276,6 +307,7 @@ window.Pierre = {
   collapseTree: instance => instance.collapse(),
   mountDiff,
   updateDiff: (instance, split, allLines) => instance.update(split, allLines),
+  diffScrollPosition: instance => instance.scrollPosition(),
   mountReview,
   updateReview: (instance, split, allLines) => instance.update(split, allLines),
   scrollReview: (instance, path) => instance.scroll(path),

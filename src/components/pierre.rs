@@ -25,7 +25,13 @@ extern "C" {
         old: Option<String>,
         new: Option<String>,
         identical: bool,
+        top: i32,
+        left: i32,
     ) -> Result<JsValue, JsValue>;
+
+    /// The current (top, left) offset, or the pending restore target.
+    #[wasm_bindgen(js_namespace = Pierre, js_name = diffScrollPosition)]
+    pub fn diff_scroll_position(instance: &JsValue) -> Vec<i32>;
 
     #[wasm_bindgen(js_namespace = Pierre, js_name = updateDiff)]
     pub fn update_diff(instance: &JsValue, split: bool, all_lines: bool);
